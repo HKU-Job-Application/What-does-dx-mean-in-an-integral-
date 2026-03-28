@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Multivariable Calculus · What is dx dy?</title>
+    <!-- MathJax 3 for LaTeX rendering -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #f8faff 0%, #f0f3fd 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* MAIN CONTENT WRAPPER — respects button exclusion zone (bottom 80px) */
+        .presentation-content {
+            flex: 1;
+            min-height: calc(100vh - 80px);
+            padding: 2rem 2rem 80px 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 2.5rem 3rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .line {
+            font-size: 2rem;
+            line-height: 1.4;
+            margin-bottom: 1.8rem;
+            font-weight: 500;
+            color: #1a2c3e;
+            letter-spacing: -0.01em;
+        }
+
+        .line:last-child {
+            margin-bottom: 0;
+        }
+
+        /* LaTeX inline styling */
+        .latex-inline {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* --- BUTTON EXCLUSION ZONE & NAVIGATION (fixed) --- */
+        .nav-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            width: 140px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease, background 0.2s;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* Ensure Previous button stays left, Next button stays right */
+        .btn-prev {
+            background-color: #d32f2f;
+            margin-right: auto;   /* pushes next button to the right */
+        }
+        .btn-prev:hover {
+            background-color: #b71c1c;
+        }
+
+        .btn-next {
+            background-color: #2e7d32;
+            margin-left: auto;    /* ensures it stays at the right edge */
+        }
+        .btn-next:hover {
+            background-color: #1b5e20;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.96);
+        }
+
+        @media (max-width: 600px) {
+            .nav-btn {
+                width: 120px;
+                height: 48px;
+                font-size: 1rem;
+            }
+            .presentation-content {
+                padding: 1.5rem 1.2rem 80px 1.2rem;
+            }
+            .line {
+                font-size: 1.5rem;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-height: 500px) {
+            .presentation-content {
+                justify-content: flex-start;
+                padding-top: 1rem;
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+
+<div class="presentation-content">
+    <div class="content-card">
+        <div class="line">Hi!</div>
+        <div class="line">
+            A lot of you who take multivariable calculus courses have trouble with the concepts involved. In particular, you may not understand what
+            <span class="latex-inline">\(\text{d}x\)</span> 
+            actually means. This looks simple, but without a good conceptual grasp on it you can make mistakes.
+        </div>
+        <div class="line">I hope these slides can be of service.</div>
+    </div>
+</div>
+
+<div class="nav-controls">
+    <button id="prevButton" class="nav-btn btn-prev">← Previous</button>
+    <button id="nextButton" class="nav-btn btn-next">Next →</button>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    //  NAVIGATION LOGIC (arithmetic based on numeric filenames)
+    //  Uses a manual MAX_SLIDE variable for reliability (no fetch)
+    // --------------------------------------------------------------
+    const MAX_SLIDE = 2;          // <--- Change this to the total number of slides
+    let currentSlideNumber = null;
+
+    // Helper: extract numeric filename (e.g., "1.html" → 1)
+    function getCurrentSlideNumber() {
+        const path = window.location.pathname;
+        const filename = path.substring(path.lastIndexOf('/') + 1);
+        const match = filename.match(/^(\d+)\.html$/);
+        return match ? parseInt(match[1], 10) : null;
+    }
+
+    // Update previous button: visible if current slide number > 1
+    function updatePrevButtonVisibility() {
+        if (!currentSlideNumber) {
+            prevButton.style.display = 'none';
+            return;
+        }
+        prevButton.style.display = (currentSlideNumber > 1) ? 'flex' : 'none';
+    }
+
+    // Update next button: visible if current slide number < MAX_SLIDE
+    function updateNextButtonVisibility() {
+        if (!currentSlideNumber) {
+            nextButton.style.display = 'none';
+            return;
+        }
+        nextButton.style.display = (currentSlideNumber < MAX_SLIDE) ? 'flex' : 'none';
+    }
+
+    // Navigation functions
+    function navigateToSlide(targetNumber) {
+        if (!currentSlideNumber) return;
+        window.location.href = `${targetNumber}.html`;
+    }
+
+    function handlePrevious() {
+        if (!currentSlideNumber) return;
+        const prevNum = currentSlideNumber - 1;
+        if (prevNum >= 1) navigateToSlide(prevNum);
+    }
+
+    function handleNext() {
+        if (!currentSlideNumber) return;
+        const nextNum = currentSlideNumber + 1;
+        if (nextNum <= MAX_SLIDE) navigateToSlide(nextNum);
+        else nextButton.style.display = 'none';
+    }
+
+    // DOM elements
+    const prevButton = document.getElementById("prevButton");
+    const nextButton = document.getElementById("nextButton");
+
+    // Initialize
+    function init() {
+        currentSlideNumber = getCurrentSlideNumber();
+        updatePrevButtonVisibility();
+        updateNextButtonVisibility();
+
+        prevButton.addEventListener("click", handlePrevious);
+        nextButton.addEventListener("click", handleNext);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riemann sums · e^{sin x} ↔ e^{sin(u²)} · Interactive Calculus</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #f8faff 0%, #f0f3fd 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .presentation-content {
+            flex: 1;
+            min-height: calc(100vh - 80px);
+            padding: 2rem 2rem 80px 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .content-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 2rem 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .text-block {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            font-weight: 500;
+            color: #1a2c3e;
+            margin-bottom: 1.2rem;
+        }
+        .graphs-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin: 1.5rem 0 0.5rem 0;
+            justify-content: center;
+        }
+        .graph-panel {
+            flex: 1;
+            min-width: 300px;
+            background: #ffffffdd;
+            border-radius: 24px;
+            padding: 1rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        .riemann-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            background: #f9fafc;
+            padding: 0.75rem 1rem;
+            border-radius: 60px;
+            border: 1px solid #e2edf2;
+        }
+        .slider-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            flex: 2;
+        }
+        .slider-area label {
+            font-weight: 600;
+            color: #1e4660;
+            font-size: 0.85rem;
+        }
+        input[type="range"] {
+            width: 260px;
+            cursor: pointer;
+            background: #cbdae9;
+            height: 4px;
+            border-radius: 5px;
+        }
+        .n-value {
+            background: #2c3e66;
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .estimate-card {
+            background: rgba(255, 248, 225, 0.98);
+            border-left: 5px solid #2e7d32;
+            border-radius: 16px;
+            padding: 0.7rem 1.2rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .estimate-card-right {
+            background: rgba(245, 245, 250, 0.96);
+            border-left: 5px solid #f39c12;
+        }
+        .estimate-card .math-row {
+            margin: 0.25rem 0;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+        }
+        .canvas-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 8px;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: white;
+            cursor: grab;
+            touch-action: none;
+        }
+        canvas:active { cursor: grabbing; }
+        .graph-tools {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+        .reset-btn {
+            background: #2c3e66;
+            border: none;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+        .reset-btn:hover {
+            background: #1e2a4a;
+            transform: scale(0.97);
+        }
+        .fig-caption {
+            font-size: 0.75rem;
+            color: #4a627a;
+            margin-top: 0.5rem;
+            text-align: center;
+            font-style: italic;
+        }
+        .info-panel {
+            background: #fef9e6;
+            border-radius: 18px;
+            padding: 0.8rem 1.2rem;
+            margin: 0.8rem 0 0.2rem 0;
+            border: 1px solid #ffe0a3;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            font-size: 0.85rem;
+        }
+        .info-panel .math-row {
+            margin: 0.3rem 0;
+        }
+        @media (max-width: 800px) {
+            .presentation-content { padding: 1rem 1rem 80px 1rem; }
+            .content-card { padding: 1.2rem; }
+            .slider-area input[type="range"] { width: 160px; }
+        }
+        .nav-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .nav-btn {
+            width: 140px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-prev { background-color: #d32f2f; }
+        .btn-prev:hover { background-color: #b71c1c; }
+        .btn-next { background-color: #2e7d32; }
+        .btn-next:hover { background-color: #1b5e20; }
+        @media (max-width: 600px) {
+            .nav-btn { width: 120px; height: 48px; font-size: 1rem; }
+        }
+        .func-heading {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            background: #f5f7fe;
+            padding: 4px 0;
+            border-radius: 40px;
+            letter-spacing: 0.3px;
+        }
+    </style>
+</head>
+<body>
+<div class="presentation-content">
+    <div class="content-card">
+        <!-- text blocks (unchanged narrative) -->
+        <div class="text-block">
+            Let's pretend we didn't know that \(\text{d}x=2u\,\text{d}u\). If so, we would come to believe that \(\displaystyle\int_0^4 e^{\sin(x)}\text{d}x\) was equal to \(\displaystyle\int_0^2 e^{\sin(u^2)}\text{d}u\).
+        </div>
+        <div class="text-block">
+            If someone asked us to confirm it by drawing a bunch of rectangles and doing approximation, we might even say,
+        </div>
+        <div class="text-block">
+            "Aha! We have a shortcut. Do you remember earlier, when we calculated all those heights of the rectangles \(e^{\sin(x_i)}\), where \(x_i\) were points of division for \([0,4]\)? We don't need to do all those calculations again. Why? Because \(\sqrt{x_i}\) become points of division for \([0,2]\)! Just let \(u_i=\sqrt{x_i}\). The heights of our rectangles \(e^{\sin(u_i^2)}\) are exactly \(e^{\sin(x_i)}\). Same heights!
+        </div>
+        <div class="text-block">
+            Also, as the widths of the sub-intervals \([x_i,x_{i+1}]\) get thinner and thinner tending to \(0\), the widths of the sub-intervals \([u_i,u_{i+1}]\) will also get thinner tending to \(0\). This we can prove. Therefore, this choice of \(u_i\) is OK for us to estimate \(\displaystyle\int_0^2 e^{\sin(u^2)}\text{d}u\)."
+        </div>
+        <div class="text-block">
+            Surely, we will find that the two integrals match, won't we? Well, you can interact with the graphs below, and find out if the two integrals are the same. You can also click on the thin rectangles on the left, which will bring out information on itself and its counterpart of equal height on the right.
+        </div>
+        <div class="text-block">
+            <strong>🔗 Hover or click</strong> on any rectangle on <strong>either</strong> graph: the matching rectangle on the opposite side highlights, and detailed info appears below. Click again anywhere (outside rectangles) to dismiss the lock.
+        </div>
+
+        <!-- global slider & n -->
+        <div class="riemann-panel" style="margin-bottom: 1rem;">
+            <div class="slider-area">
+                <label>📐 Subintervals (n):</label>
+                <input type="range" id="nSlider" min="0" max="4" step="1" value="2">
+                <span class="n-value" id="nValueDisplay">n = 10</span>
+            </div>
+        </div>
+
+        <!-- two graphs side by side -->
+        <div class="graphs-row">
+            <!-- LEFT GRAPH: f(x) = e^{sin x} on [0,4] -->
+            <div class="graph-panel">
+                <div id="leftEstimateBox" class="estimate-card">
+                    <div class="math-row" id="leftFormula"></div>
+                    <div class="math-row" id="leftActual"></div>
+                </div>
+                <!-- new LaTeX heading above left graph: y = f(x) -->
+                <div class="func-heading">\( y = f(x) \)</div>
+                <div class="canvas-wrapper">
+                    <canvas id="leftCanvas" width="650" height="420" style="width:100%; height:auto; aspect-ratio:650/420"></canvas>
+                </div>
+                <div class="graph-tools">
+                    <button id="resetLeftBtn" class="reset-btn">⟳ Reset left view</button>
+                </div>
+                <div id="leftRectInfo" class="info-panel">
+                    <div class="math-row" style="font-weight: bold; margin-bottom: 6px;">📐 Left rectangle details</div>
+                    <div id="leftInfoContent" class="math-row">— no rectangle selected —</div>
+                </div>
+                <div class="fig-caption">
+                    🖱️ Drag/scroll · \(f(x)=e^{\sin x}\) · Shaded: \(\int_0^4 f(x)\,dx\)<br>
+                    🔷 Light blue rectangles: left Riemann sum
+                </div>
+            </div>
+
+            <!-- RIGHT GRAPH: g(u) = e^{sin(u²)} on [0,2] -->
+            <div class="graph-panel">
+                <div id="rightEstimateBox" class="estimate-card estimate-card-right">
+                    <div class="math-row" id="rightFormula"></div>
+                    <div class="math-row" id="rightActual"></div>
+                </div>
+                <!-- new LaTeX heading above right graph: y = f(u^2) -->
+                <div class="func-heading">\( y = f(u^2) \)</div>
+                <div class="canvas-wrapper">
+                    <canvas id="rightCanvas" width="650" height="420" style="width:100%; height:auto; aspect-ratio:650/420"></canvas>
+                </div>
+                <div class="graph-tools">
+                    <button id="resetRightBtn" class="reset-btn">⟳ Reset right view</button>
+                </div>
+                <div id="rightRectInfo" class="info-panel">
+                    <div class="math-row" style="font-weight: bold; margin-bottom: 6px;">🟡 Right rectangle details</div>
+                    <div id="rightInfoContent" class="math-row">— no rectangle selected —</div>
+                </div>
+                <div class="fig-caption">
+                    🖱️ Drag/scroll · \(g(u)=e^{\sin(u^2)}\) · Shaded: \(\int_0^2 g(u)\,du\)<br>
+                    🟡 Yellow rectangles: left Riemann (mapped from left side)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="nav-controls">
+    <button id="prevButton" class="nav-btn btn-prev">← Previous</button>
+    <button id="nextButton" class="nav-btn btn-next">Next →</button>
+</div>
+
+<script>
+    (function() {
+        // ---------- precomputed exact areas and approximations ----------
+        const LEFT_ACTUAL = 6.7964724214;
+        const RIGHT_ACTUAL = 3.276702922;
+        const LEFT_APPROX = { 5: 6.9394972002, 10: 6.8852370939, 20: 6.8452016245, 50: 6.8170089951 };
+        const RIGHT_APPROX = { 5: 3.096075042, 10: 3.175908458, 20: 3.221248713, 50: 3.252353000 };
+        
+        const ALLOWED_N = [0, 5, 10, 20, 50];
+        let currentN = 10;
+        
+        let activeRectIndex = null;
+        let lockMode = false;
+        
+        // Canvas world limits & view
+        const LEFT_WORLD_X_MIN = 0, LEFT_WORLD_X_MAX = 8, LEFT_WORLD_Y_MIN = -2, LEFT_WORLD_Y_MAX = 5;
+        const RIGHT_WORLD_X_MIN = 0, RIGHT_WORLD_X_MAX = 3, RIGHT_WORLD_Y_MIN = -2, RIGHT_WORLD_Y_MAX = 5;
+        
+        // Set initial views so that vertical scale is identical and horizontal padding similar
+        let leftXMin = 0, leftXMax = 5.2, leftYMin = -1.2, leftYMax = 4.5;
+        let rightXMin = 0, rightXMax = 2.6, rightYMin = -1.2, rightYMax = 4.5;
+        
+        function f_left(x) { return Math.exp(Math.sin(x)); }
+        function f_right(u) { return Math.exp(Math.sin(u * u)); }
+        
+        function clampLeftView() {
+            let rx = leftXMax - leftXMin, ry = leftYMax - leftYMin;
+            if (leftXMin < LEFT_WORLD_X_MIN) { leftXMin = LEFT_WORLD_X_MIN; leftXMax = leftXMin + rx; }
+            if (leftXMax > LEFT_WORLD_X_MAX) { leftXMax = LEFT_WORLD_X_MAX; leftXMin = leftXMax - rx; }
+            if (leftYMin < LEFT_WORLD_Y_MIN) { leftYMin = LEFT_WORLD_Y_MIN; leftYMax = leftYMin + ry; }
+            if (leftYMax > LEFT_WORLD_Y_MAX) { leftYMax = LEFT_WORLD_Y_MAX; leftYMin = leftYMax - ry; }
+        }
+        function clampRightView() {
+            let rx = rightXMax - rightXMin, ry = rightYMax - rightYMin;
+            if (rightXMin < RIGHT_WORLD_X_MIN) { rightXMin = RIGHT_WORLD_X_MIN; rightXMax = rightXMin + rx; }
+            if (rightXMax > RIGHT_WORLD_X_MAX) { rightXMax = RIGHT_WORLD_X_MAX; rightXMin = rightXMax - rx; }
+            if (rightYMin < RIGHT_WORLD_Y_MIN) { rightYMin = RIGHT_WORLD_Y_MIN; rightYMax = rightYMin + ry; }
+            if (rightYMax > RIGHT_WORLD_Y_MAX) { rightYMax = RIGHT_WORLD_Y_MAX; rightYMin = rightYMax - ry; }
+        }
+        
+        function worldToCanvas(canvas, xWorld, yWorld, xMin, xMax, yMin, yMax) {
+            const w = canvas.width, h = canvas.height;
+            const tx = ((xWorld - xMin) / (xMax - xMin)) * w;
+            const ty = h - ((yWorld - yMin) / (yMax - yMin)) * h;
+            return { x: tx, y: ty };
+        }
+        function canvasToWorld(canvas, canvasX, canvasY, xMin, xMax, yMin, yMax) {
+            const w = canvas.width, h = canvas.height;
+            const xWorld = xMin + (canvasX / w) * (xMax - xMin);
+            const yWorld = yMin + ((h - canvasY) / h) * (yMax - yMin);
+            return { x: xWorld, y: yWorld };
+        }
+        
+        // Drawing helpers - MODIFIED: xAxisLabel removed, showXTip = false to eliminate "x"/"u" labels and arrow tips
+        function drawGridAxes(ctx, w, h, xMin, xMax, yMin, yMax, xAxisLabel = "", showXTip = false) {
+            ctx.save();
+            ctx.strokeStyle = "#cbd5e1";
+            ctx.lineWidth = 0.6;
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "11px 'Arial', sans-serif";
+            const xRange = xMax - xMin, yRange = yMax - yMin;
+            const xStep = Math.pow(10, Math.floor(Math.log10(xRange / 5)));
+            const yStep = Math.pow(10, Math.floor(Math.log10(yRange / 5)));
+            for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax; x += xStep) {
+                if (x < -1e-8) continue;
+                const { x: sx } = worldToCanvas({width:w,height:h}, x, 0, xMin, xMax, yMin, yMax);
+                if (sx >= 0 && sx <= w) {
+                    ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, h);
+                    ctx.strokeStyle = "#e2e8f0"; ctx.stroke();
+                    ctx.fillStyle = "#334155";
+                    ctx.fillText(x.toFixed(xStep < 1 ? 2 : 0), sx + 4, h - 6);
+                }
+            }
+            for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax; y += yStep) {
+                const { y: sy } = worldToCanvas({width:w,height:h}, 0, y, xMin, xMax, yMin, yMax);
+                if (sy >= 0 && sy <= h) {
+                    ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(w, sy);
+                    ctx.strokeStyle = "#e2e8f0"; ctx.stroke();
+                    ctx.fillStyle = "#334155";
+                    ctx.fillText(y.toFixed(yStep < 0.5 ? 2 : 1), 6, sy - 3);
+                }
+            }
+            // axes
+            const { x: axisX, y: axisY } = worldToCanvas({width:w,height:h}, 0, 0, xMin, xMax, yMin, yMax);
+            ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = "#1e293b";
+            if (axisY >= 0 && axisY <= h) { ctx.moveTo(0, axisY); ctx.lineTo(w, axisY); ctx.stroke(); }
+            if (axisX >= 0 && axisX <= w) { ctx.moveTo(axisX, 0); ctx.lineTo(axisX, h); ctx.stroke(); }
+            // No x-axis label or arrow tip (removed as per requirement)
+            ctx.restore();
+        }
+        
+        function drawShadedCurve(ctx, w, h, xMin, xMax, yMin, yMax, func, a, b, colorFill = "rgba(46,125,50,0.25)", strokeColor = "#2e7d32") {
+            if (b <= xMin || a >= xMax) return;
+            const leftClip = Math.max(a, xMin), rightClip = Math.min(b, xMax);
+            const steps = Math.max(80, Math.floor((rightClip - leftClip) / (xMax - xMin) * 400));
+            const step = (rightClip - leftClip) / steps;
+            ctx.beginPath();
+            let first = true;
+            for (let i = 0; i <= steps; i++) {
+                const x = leftClip + i * step;
+                const yVal = func(x);
+                if (!isNaN(yVal)) {
+                    const { x: sx, y: sy } = worldToCanvas({width:w,height:h}, x, yVal, xMin, xMax, yMin, yMax);
+                    if (first) { ctx.moveTo(sx, sy); first = false; }
+                    else ctx.lineTo(sx, sy);
+                }
+            }
+            const { x: sxR, y: syBR } = worldToCanvas({width:w,height:h}, rightClip, 0, xMin, xMax, yMin, yMax);
+            const { x: sxL, y: syBL } = worldToCanvas({width:w,height:h}, leftClip, 0, xMin, xMax, yMin, yMax);
+            ctx.lineTo(sxR, syBR); ctx.lineTo(sxL, syBL); ctx.closePath();
+            ctx.fillStyle = colorFill; ctx.fill();
+            ctx.strokeStyle = strokeColor; ctx.lineWidth = 1.2; ctx.stroke();
+        }
+        
+        function drawLeftRectangles(ctx, w, h, xMin, xMax, yMin, yMax, n, activeIdx) {
+            if (n === 0) return;
+            const dx = 4 / n;
+            for (let k = 0; k < n; k++) {
+                const xL = k * dx, xR = (k+1)*dx;
+                if (xR < xMin || xL > xMax) continue;
+                const leftClip = Math.max(xL, xMin), rightClip = Math.min(xR, xMax);
+                if (leftClip >= rightClip) continue;
+                const height = f_left(xL);
+                const { x: sxL } = worldToCanvas({width:w,height:h}, leftClip, 0, xMin, xMax, yMin, yMax);
+                const { x: sxR } = worldToCanvas({width:w,height:h}, rightClip, 0, xMin, xMax, yMin, yMax);
+                const { y: topY } = worldToCanvas({width:w,height:h}, xL, height, xMin, xMax, yMin, yMax);
+                const { y: bottomY } = worldToCanvas({width:w,height:h}, xL, 0, xMin, xMax, yMin, yMax);
+                const rectX = sxL, rectW = sxR - sxL, rectY = Math.min(topY, bottomY), rectH = Math.abs(bottomY - topY);
+                if (rectW <= 0 || rectH <= 0) continue;
+                let fillColor = "rgba(54, 162, 235, 0.4)";
+                if (activeIdx !== null && k === activeIdx) fillColor = "rgba(230, 126, 34, 0.7)";
+                ctx.fillStyle = fillColor;
+                ctx.fillRect(rectX, rectY, rectW, rectH);
+                ctx.strokeStyle = activeIdx === k ? "#e67e22" : "#1e6f9f";
+                ctx.lineWidth = activeIdx === k ? 2.5 : 1;
+                ctx.strokeRect(rectX, rectY, rectW, rectH);
+            }
+        }
+        
+        function drawRightRectangles(ctx, w, h, xMin, xMax, yMin, yMax, n, activeIdx) {
+            if (n === 0) return;
+            for (let k = 0; k < n; k++) {
+                const uL = Math.sqrt(4*k/n);
+                const uR = Math.sqrt(4*(k+1)/n);
+                if (uR < xMin || uL > xMax) continue;
+                const leftClip = Math.max(uL, xMin), rightClip = Math.min(uR, xMax);
+                if (leftClip >= rightClip) continue;
+                const height = f_left(4*k/n);
+                const { x: sxL } = worldToCanvas({width:w,height:h}, leftClip, 0, xMin, xMax, yMin, yMax);
+                const { x: sxR } = worldToCanvas({width:w,height:h}, rightClip, 0, xMin, xMax, yMin, yMax);
+                const { y: topY } = worldToCanvas({width:w,height:h}, uL, height, xMin, xMax, yMin, yMax);
+                const { y: bottomY } = worldToCanvas({width:w,height:h}, uL, 0, xMin, xMax, yMin, yMax);
+                const rectX = sxL, rectW = sxR - sxL, rectY = Math.min(topY, bottomY), rectH = Math.abs(bottomY - topY);
+                if (rectW <= 0 || rectH <= 0) continue;
+                let fillColor = "rgba(243, 156, 18, 0.5)";
+                if (activeIdx !== null && k === activeIdx) fillColor = "rgba(230, 126, 34, 0.75)";
+                ctx.fillStyle = fillColor;
+                ctx.fillRect(rectX, rectY, rectW, rectH);
+                ctx.strokeStyle = activeIdx === k ? "#e67e22" : "#b86f0c";
+                ctx.lineWidth = activeIdx === k ? 2.5 : 1;
+                ctx.strokeRect(rectX, rectY, rectW, rectH);
+            }
+        }
+        
+        function drawCurve(ctx, w, h, xMin, xMax, yMin, yMax, func, color = "#d32f2f") {
+            ctx.beginPath(); ctx.lineWidth = 2.8; ctx.strokeStyle = color;
+            let first = true;
+            const samples = Math.max(250, Math.floor((xMax - xMin) / (xMax - xMin) * 500));
+            for (let i = 0; i <= samples; i++) {
+                const x = xMin + (i / samples) * (xMax - xMin);
+                const y = func(x);
+                if (isNaN(y)) { first = true; continue; }
+                const { x: sx, y: sy } = worldToCanvas({width:w,height:h}, x, y, xMin, xMax, yMin, yMax);
+                if (sy < -100 || sy > h+100) { first = true; continue; }
+                if (first) { ctx.moveTo(sx, sy); first = false; }
+                else ctx.lineTo(sx, sy);
+            }
+            ctx.stroke();
+        }
+        
+        let leftCanvas = document.getElementById('leftCanvas'), rightCanvas = document.getElementById('rightCanvas');
+        let leftCtx = leftCanvas.getContext('2d'), rightCtx = rightCanvas.getContext('2d');
+        
+        function drawLeft() {
+            if (!leftCtx) return;
+            const w = leftCanvas.width, h = leftCanvas.height;
+            leftCtx.clearRect(0,0,w,h);
+            drawGridAxes(leftCtx, w, h, leftXMin, leftXMax, leftYMin, leftYMax, "", false);
+            drawShadedCurve(leftCtx, w, h, leftXMin, leftXMax, leftYMin, leftYMax, f_left, 0, 4);
+            drawLeftRectangles(leftCtx, w, h, leftXMin, leftXMax, leftYMin, leftYMax, currentN, activeRectIndex);
+            drawCurve(leftCtx, w, h, leftXMin, leftXMax, leftYMin, leftYMax, f_left);
+            leftCtx.save(); leftCtx.setLineDash([4,6]); leftCtx.lineWidth=1; leftCtx.strokeStyle="#2c5e66";
+            if(0>=leftXMin && 0<=leftXMax){ let {x:lx}=worldToCanvas({width:w,height:h},0,0,leftXMin,leftXMax,leftYMin,leftYMax); leftCtx.beginPath(); leftCtx.moveTo(lx,0); leftCtx.lineTo(lx,h); leftCtx.stroke();}
+            if(4>=leftXMin && 4<=leftXMax){ let {x:lx}=worldToCanvas({width:w,height:h},4,0,leftXMin,leftXMax,leftYMin,leftYMax); leftCtx.beginPath(); leftCtx.moveTo(lx,0); leftCtx.lineTo(lx,h); leftCtx.stroke();}
+            leftCtx.setLineDash([]); leftCtx.restore();
+        }
+        
+        function drawRight() {
+            if (!rightCtx) return;
+            const w = rightCanvas.width, h = rightCanvas.height;
+            rightCtx.clearRect(0,0,w,h);
+            drawGridAxes(rightCtx, w, h, rightXMin, rightXMax, rightYMin, rightYMax, "", false);
+            drawShadedCurve(rightCtx, w, h, rightXMin, rightXMax, rightYMin, rightYMax, f_right, 0, 2, "rgba(46,125,50,0.2)", "#2e7d32");
+            drawRightRectangles(rightCtx, w, h, rightXMin, rightXMax, rightYMin, rightYMax, currentN, activeRectIndex);
+            drawCurve(rightCtx, w, h, rightXMin, rightXMax, rightYMin, rightYMax, f_right, "#d32f2f");
+            rightCtx.save(); rightCtx.setLineDash([4,6]); rightCtx.lineWidth=1; rightCtx.strokeStyle="#2c5e66";
+            if(0>=rightXMin && 0<=rightXMax){ let {x:lx}=worldToCanvas({width:w,height:h},0,0,rightXMin,rightXMax,rightYMin,rightYMax); rightCtx.beginPath(); rightCtx.moveTo(lx,0); rightCtx.lineTo(lx,h); rightCtx.stroke();}
+            if(2>=rightXMin && 2<=rightXMax){ let {x:lx}=worldToCanvas({width:w,height:h},2,0,rightXMin,rightXMax,rightYMin,rightYMax); rightCtx.beginPath(); rightCtx.moveTo(lx,0); rightCtx.lineTo(lx,h); rightCtx.stroke();}
+            rightCtx.setLineDash([]); rightCtx.restore();
+        }
+        
+        function redrawBoth() { drawLeft(); drawRight(); updateInfoPanels(); updateValueBoxes(); }
+        
+        function getLeftRectIndex(worldX) {
+            if (currentN === 0) return null;
+            if (worldX < 0 || worldX > 4) return null;
+            const dx = 4 / currentN;
+            let k = Math.floor(worldX / dx);
+            if (k >= 0 && k < currentN) return k;
+            return null;
+        }
+        function getRightRectIndex(worldU) {
+            if (currentN === 0) return null;
+            if (worldU < 0 || worldU > 2) return null;
+            for (let k = 0; k < currentN; k++) {
+                const uL = Math.sqrt(4*k/currentN), uR = Math.sqrt(4*(k+1)/currentN);
+                if (worldU >= uL && worldU <= uR) return k;
+            }
+            return null;
+        }
+        
+        function setupCanvasEvents(canvas, isLeft) {
+            const getIndex = (worldX, worldY) => {
+                if (isLeft) return getLeftRectIndex(worldX);
+                else return getRightRectIndex(worldX);
+            };
+            const getWorldCoords = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
+                let cx, cy;
+                if (e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+                else { cx = e.clientX; cy = e.clientY; }
+                const canvasX = (cx - rect.left) * scaleX, canvasY = (cy - rect.top) * scaleY;
+                const xMinLocal = isLeft ? leftXMin : rightXMin, xMaxLocal = isLeft ? leftXMax : rightXMax;
+                const yMinLocal = isLeft ? leftYMin : rightYMin, yMaxLocal = isLeft ? leftYMax : rightYMax;
+                const world = canvasToWorld(canvas, canvasX, canvasY, xMinLocal, xMaxLocal, yMinLocal, yMaxLocal);
+                return world;
+            };
+            canvas.addEventListener('mousemove', (e) => {
+                if (lockMode) return;
+                const { x, y } = getWorldCoords(e);
+                const idx = getIndex(x, y);
+                if (idx !== null) { activeRectIndex = idx; }
+                else { activeRectIndex = null; }
+                redrawBoth();
+            });
+            canvas.addEventListener('click', (e) => {
+                const { x, y } = getWorldCoords(e);
+                const idx = getIndex(x, y);
+                if (idx !== null) {
+                    lockMode = true;
+                    activeRectIndex = idx;
+                } else {
+                    if (lockMode) { lockMode = false; activeRectIndex = null; }
+                }
+                redrawBoth();
+            });
+            canvas.addEventListener('mouseleave', () => {
+                if (!lockMode) { activeRectIndex = null; redrawBoth(); }
+            });
+        }
+        
+        function updateInfoPanels() {
+            const leftPanel = document.getElementById('leftInfoContent');
+            const rightPanel = document.getElementById('rightInfoContent');
+            if (activeRectIndex === null || currentN === 0) {
+                leftPanel.innerHTML = '— no rectangle selected —';
+                rightPanel.innerHTML = '— no rectangle selected —';
+                return;
+            }
+            const k = activeRectIndex, n = currentN;
+            const xL = 4*k/n, xR = 4*(k+1)/n;
+            const widthX = xR - xL;
+            const height = f_left(xL);
+            const uL = Math.sqrt(4*k/n), uR = Math.sqrt(4*(k+1)/n);
+            const widthU = uR - uL;
+            
+            leftPanel.innerHTML = `
+                <div class="math-row">
+                    \\(x_i = ${xL.toFixed(3)},\\; x_{i+1}=${xR.toFixed(3)},\\; \\Delta x = ${widthX.toFixed(3)}\\)<br>
+                    \\(\\text{height} = e^{\\sin(${xL.toFixed(3)})} \\approx ${height.toFixed(3)}\\) 
+                </div>
+            `;
+            rightPanel.innerHTML = `
+                <div class="math-row">
+                    \\(u_i = ${uL.toFixed(3)},\\; u_{i+1}=${uR.toFixed(3)},\\; \\Delta u = ${widthU.toFixed(3)}\\)<br>
+                    \\(\\text{height} = e^{\\sin(${xL.toFixed(3)})} \\approx ${height.toFixed(3)}\\) 
+                </div>
+            `;
+            if (window.MathJax) MathJax.typesetPromise([leftPanel, rightPanel]);
+        }
+        
+        function equalizeCardHeights() {
+            const leftCard = document.getElementById('leftEstimateBox');
+            const rightCard = document.getElementById('rightEstimateBox');
+            if (leftCard && rightCard) {
+                leftCard.style.height = 'auto';
+                rightCard.style.height = 'auto';
+                const leftHeight = leftCard.offsetHeight;
+                const rightHeight = rightCard.offsetHeight;
+                const maxHeight = Math.max(leftHeight, rightHeight);
+                leftCard.style.height = maxHeight + 'px';
+                rightCard.style.height = maxHeight + 'px';
+            }
+        }
+        
+        function updateValueBoxes() {
+            const nVal = currentN;
+            // if n == 0, hide estimated area lines completely (only integral line remains)
+            if (nVal === 0) {
+                document.getElementById('leftFormula').innerHTML = '';
+                document.getElementById('rightFormula').innerHTML = '';
+            } else {
+                const leftEst = LEFT_APPROX[nVal].toFixed(4);
+                const rightEst = RIGHT_APPROX[nVal].toFixed(4);
+                document.getElementById('leftFormula').innerHTML = `📊 Estimated area: \\(\\sum_{k=0}^{${nVal-1}} e^{\\sin\\left(\\frac{4k}{${nVal}}\\right)} \\cdot \\frac{4}{${nVal}} \\approx ${leftEst}\\)`;
+                document.getElementById('rightFormula').innerHTML = `📊 Estimated area: \\(\\sum_{k=0}^{${nVal-1}} e^{\\sin\\left(\\frac{4k}{${nVal}}\\right)} \\cdot \\left(\\sqrt{\\frac{4(k+1)}{${nVal}}}-\\sqrt{\\frac{4k}{${nVal}}}\\right) \\approx ${rightEst}\\)`;
+            }
+            // always show actual integral lines
+            document.getElementById('leftActual').innerHTML = `🎯 \\(\\int_0^4 e^{\\sin x}\\,dx \\approx ${LEFT_ACTUAL.toFixed(4)}\\)`;
+            document.getElementById('rightActual').innerHTML = `🎯 \\(\\int_0^2 e^{\\sin(u^2)}\\,du \\approx ${RIGHT_ACTUAL.toFixed(4)}\\)`;
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise([document.getElementById('leftFormula'), document.getElementById('leftActual'), document.getElementById('rightFormula'), document.getElementById('rightActual')])
+                    .then(() => equalizeCardHeights());
+            } else {
+                equalizeCardHeights();
+            }
+        }
+        
+        const nSlider = document.getElementById('nSlider');
+        const nValueDisplay = document.getElementById('nValueDisplay');
+        nSlider.addEventListener('input', (e) => {
+            let idx = parseInt(e.target.value);
+            currentN = ALLOWED_N[idx];
+            nValueDisplay.innerText = `n = ${currentN}`;
+            lockMode = false; activeRectIndex = null;
+            redrawBoth();
+        });
+        nSlider.value = "2"; nValueDisplay.innerText = `n = 10`;
+        
+        document.getElementById('resetLeftBtn').addEventListener('click', () => { leftXMin=0; leftXMax=5.2; leftYMin=-1.2; leftYMax=4.5; clampLeftView(); drawLeft(); });
+        document.getElementById('resetRightBtn').addEventListener('click', () => { rightXMin=0; rightXMax=2.6; rightYMin=-1.2; rightYMax=4.5; clampRightView(); drawRight(); });
+        
+        function resizeAndDraw() { drawLeft(); drawRight(); equalizeCardHeights(); }
+        window.addEventListener('resize', () => resizeAndDraw());
+        
+        function addPanZoom(canvas, isLeft) {
+            let dragging=false, startX, startY, startXMin, startYMin, startXMax, startYMax;
+            const getBounds = () => isLeft ? {xMin:leftXMin, xMax:leftXMax, yMin:leftYMin, yMax:leftYMax} : {xMin:rightXMin, xMax:rightXMax, yMin:rightYMin, yMax:rightYMax};
+            const setBounds = (b) => { if(isLeft){ leftXMin=b.xMin; leftXMax=b.xMax; leftYMin=b.yMin; leftYMax=b.yMax; clampLeftView(); drawLeft(); } else { rightXMin=b.xMin; rightXMax=b.xMax; rightYMin=b.yMin; rightYMax=b.yMax; clampRightView(); drawRight(); } };
+            canvas.addEventListener('mousedown',(e)=>{ dragging=true; const b=getBounds(); startXMin=b.xMin; startYMin=b.yMin; startXMax=b.xMax; startYMax=b.yMax; const rect=canvas.getBoundingClientRect(); const sx=canvas.width/rect.width, sy=canvas.height/rect.height; startX=(e.clientX-rect.left)*sx; startY=(e.clientY-rect.top)*sy; canvas.style.cursor='grabbing'; e.preventDefault(); });
+            window.addEventListener('mousemove',(e)=>{ if(!dragging) return; const rect=canvas.getBoundingClientRect(); const sx=canvas.width/rect.width, sy=canvas.height/rect.height; const curX=(e.clientX-rect.left)*sx, curY=(e.clientY-rect.top)*sy; const dxWorld=((curX-startX)/canvas.width)*(startXMax-startXMin); const dyWorld=-((curY-startY)/canvas.height)*(startYMax-startYMin); let nxMin=startXMin-dxWorld, nxMax=startXMax-dxWorld; let nyMin=startYMin-dyWorld, nyMax=startYMax-dyWorld; if(isLeft){ if(nxMin<LEFT_WORLD_X_MIN){ nxMin=LEFT_WORLD_X_MIN; nxMax=nxMin+(startXMax-startXMin); } if(nxMax>LEFT_WORLD_X_MAX){ nxMax=LEFT_WORLD_X_MAX; nxMin=nxMax-(startXMax-startXMin); } if(nyMin<LEFT_WORLD_Y_MIN){ nyMin=LEFT_WORLD_Y_MIN; nyMax=nyMin+(startYMax-startYMin); } if(nyMax>LEFT_WORLD_Y_MAX){ nyMax=LEFT_WORLD_Y_MAX; nyMin=nyMax-(startYMax-startYMin); } } else { if(nxMin<RIGHT_WORLD_X_MIN){ nxMin=RIGHT_WORLD_X_MIN; nxMax=nxMin+(startXMax-startXMin); } if(nxMax>RIGHT_WORLD_X_MAX){ nxMax=RIGHT_WORLD_X_MAX; nxMin=nxMax-(startXMax-startXMin); } if(nyMin<RIGHT_WORLD_Y_MIN){ nyMin=RIGHT_WORLD_Y_MIN; nyMax=nyMin+(startYMax-startYMin); } if(nyMax>RIGHT_WORLD_Y_MAX){ nyMax=RIGHT_WORLD_Y_MAX; nyMin=nyMax-(startYMax-startYMin); } } setBounds({xMin:nxMin, xMax:nxMax, yMin:nyMin, yMax:nyMax}); });
+            window.addEventListener('mouseup',()=>{ dragging=false; canvas.style.cursor='grab'; });
+            canvas.addEventListener('wheel',(e)=>{ e.preventDefault(); const factor=e.deltaY>0?0.9:1.1; const b=getBounds(); const cx=(b.xMin+b.xMax)/2, cy=(b.yMin+b.yMax)/2; let nxMin=cx-(cx-b.xMin)/factor, nxMax=nxMin+(b.xMax-b.xMin)/factor; let nyMin=cy-(cy-b.yMin)/factor, nyMax=nyMin+(b.yMax-b.yMin)/factor; if(isLeft){ if(nxMin<LEFT_WORLD_X_MIN) nxMin=LEFT_WORLD_X_MIN; if(nxMax>LEFT_WORLD_X_MAX) nxMax=LEFT_WORLD_X_MAX; if(nyMin<LEFT_WORLD_Y_MIN) nyMin=LEFT_WORLD_Y_MIN; if(nyMax>LEFT_WORLD_Y_MAX) nyMax=LEFT_WORLD_Y_MAX; } else { if(nxMin<RIGHT_WORLD_X_MIN) nxMin=RIGHT_WORLD_X_MIN; if(nxMax>RIGHT_WORLD_X_MAX) nxMax=RIGHT_WORLD_X_MAX; if(nyMin<RIGHT_WORLD_Y_MIN) nyMin=RIGHT_WORLD_Y_MIN; if(nyMax>RIGHT_WORLD_Y_MAX) nyMax=RIGHT_WORLD_Y_MAX; } setBounds({xMin:nxMin, xMax:nxMax, yMin:nyMin, yMax:nyMax}); },{passive:false});
+        }
+        addPanZoom(leftCanvas, true); addPanZoom(rightCanvas, false);
+        setupCanvasEvents(leftCanvas, true); setupCanvasEvents(rightCanvas, false);
+        updateValueBoxes(); redrawBoth();
+        equalizeCardHeights();
+        
+        let currentSlideNumber = null;
+        function getCurrentSlideNumber() { const match = window.location.pathname.match(/\/(\d+)\.html$/); return match ? parseInt(match[1],10) : null; }
+        function navigateToSlide(target){ window.location.href = `${target}.html`; }
+        document.getElementById('prevButton').addEventListener('click',()=>{ let cur=getCurrentSlideNumber(); if(cur) navigateToSlide(cur-1); });
+        document.getElementById('nextButton').addEventListener('click',()=>{ let cur=getCurrentSlideNumber(); if(cur) navigateToSlide(cur+1); });
+    })();
+</script>
+</body>
+</html>

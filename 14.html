@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Multivariable Calculus · Volume & Desmos Visualization</title>
+    <!-- MathJax 3 for LaTeX rendering -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #f8faff 0%, #f0f3fd 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* MAIN CONTENT WRAPPER — respects button exclusion zone (bottom 80px) */
+        .presentation-content {
+            flex: 1;
+            min-height: calc(100vh - 80px);
+            padding: 2rem 2rem 80px 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 2.5rem 3rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        /* Font size consistent with 10.html (1.1rem desktop, 1.0rem mobile) */
+        .line {
+            font-size: 1.1rem;
+            line-height: 1.55;
+            margin-bottom: 1.2rem;
+            font-weight: 500;
+            color: #1a2c3e;
+            letter-spacing: -0.01em;
+        }
+
+        .line:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Desmos copy line – Arial, subtle background for clarity, no monospace */
+        .desmos-expression {
+            background: #eef2fa;
+            border-left: 4px solid #2e7d32;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-family: inherit;        /* inherits Arial from body */
+            font-size: 1.05rem;
+            line-height: 1.45;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #0a2f44;
+            margin: 0.5rem 0 0.25rem 0;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.02);
+            font-weight: 500;
+        }
+
+        /* LaTeX inline styling */
+        .latex-inline {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* --- BUTTON EXCLUSION ZONE & NAVIGATION (fixed, always visible) --- */
+        .nav-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            width: 140px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease, background 0.2s;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-prev {
+            background-color: #d32f2f;
+            margin-right: auto;
+        }
+        .btn-prev:hover {
+            background-color: #b71c1c;
+        }
+
+        .btn-next {
+            background-color: #2e7d32;
+            margin-left: auto;
+        }
+        .btn-next:hover {
+            background-color: #1b5e20;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.96);
+        }
+
+        @media (max-width: 600px) {
+            .nav-btn {
+                width: 120px;
+                height: 48px;
+                font-size: 1rem;
+            }
+            .presentation-content {
+                padding: 1.5rem 1.2rem 80px 1.2rem;
+            }
+            .line {
+                font-size: 1.0rem;
+                line-height: 1.5;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
+            .desmos-expression {
+                font-size: 0.95rem;
+                padding: 0.6rem 0.9rem;
+            }
+        }
+
+        @media (max-height: 500px) {
+            .presentation-content {
+                justify-content: flex-start;
+                padding-top: 1rem;
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        strong {
+            font-weight: 700;
+            color: #0f2b3b;
+        }
+
+        a {
+            color: #1e6f5c;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(30,111,92,0.3);
+            transition: border 0.2s;
+        }
+        a:hover {
+            border-bottom-color: #1e6f5c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="presentation-content">
+    <div class="content-card">
+        <div class="line">
+            A typical query is to integrate a real function \(f(x,y)\) over some 2-D shape on the \(xy\) plane. 
+            We could consider \(\displaystyle\int_C\exp(-x^2-y^2)\,\text{d}x\,\text{d}y\), where \(C\) is a disc centred at the origin. 
+            Let's use a radius of \(\sqrt{2}\), so that \(C\) is the set of points where \(x^2+y^2\leq 2\). 
+            What does the integral mean, mathematically?
+        </div>
+
+        <div class="line">
+            By the way, before we explore that, do make sure you know how to use the Desmos graphing website, 
+            by going to <a href="https://www.desmos.com/3d" target="_blank" rel="noopener noreferrer">desmos.com/3d</a> 
+            and typing in this line:
+        </div>
+
+        <!-- Exact Desmos expression with escaped angle brackets to prevent HTML misinterpretation.
+             The expression is displayed in Arial (inherited), not processed as LaTeX. -->
+        <div class="desmos-expression" data-mjx-tex="false">
+            0&lt;z&lt;\left\{x^{2}+y^{2}&lt;2\ :\ \exp\left(-x^{2}-y^{2}\right)\right\}
+        </div>
+
+        <div class="line">
+            It fills in, in solid colour, the exact volume being calculated in the integral. 
+            It looks like a flying saucer or something, with a thin circular dish at the bottom.
+        </div>
+    </div>
+</div>
+
+<div class="nav-controls">
+    <button id="prevButton" class="nav-btn btn-prev">← Previous</button>
+    <button id="nextButton" class="nav-btn btn-next">Next →</button>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    //  PURE ARITHMETIC NAVIGATION (numeric filenames)
+    //  Based strictly on current file number ± 1 → target.html
+    //  Buttons always visible; no boundary checks, no hiding.
+    // --------------------------------------------------------------
+    (function() {
+        function getCurrentNumber() {
+            const path = window.location.pathname;
+            const filename = path.substring(path.lastIndexOf('/') + 1);
+            const match = filename.match(/^(\d+)\.html$/);
+            if (match && match[1]) {
+                return parseInt(match[1], 10);
+            }
+            return null;
+        }
+
+        const currentNum = getCurrentNumber();
+        const prevBtn = document.getElementById('prevButton');
+        const nextBtn = document.getElementById('nextButton');
+
+        function goToSlide(targetNumber) {
+            if (targetNumber !== null && !isNaN(targetNumber)) {
+                window.location.href = targetNumber + '.html';
+            }
+        }
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (currentNum !== null) {
+                    goToSlide(currentNum - 1);
+                }
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (currentNum !== null) {
+                    goToSlide(currentNum + 1);
+                }
+            });
+        }
+    })();
+</script>
+</body>
+</html>

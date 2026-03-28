@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Interactive Graph · x ln x · Visual Calculus</title>
+    <!-- MathJax 3 for LaTeX rendering -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #f8faff 0%, #f0f3fd 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* MAIN CONTENT WRAPPER — respects button exclusion zone (bottom 80px) */
+        .presentation-content {
+            flex: 1;
+            min-height: calc(100vh - 80px);
+            padding: 2rem 2rem 80px 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 2.5rem 3rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        /* consistent text style — same as slide 2, but slightly tuned for paragraphs */
+        .text-block {
+            font-size: 1.8rem;
+            line-height: 1.4;
+            font-weight: 500;
+            color: #1a2c3e;
+            letter-spacing: -0.01em;
+            margin-bottom: 1.6rem;
+        }
+        .text-block:last-child {
+            margin-bottom: 0;
+        }
+
+        /* interactive graph container */
+        .graph-interactive {
+            margin-top: 2rem;
+            background: #ffffffdd;
+            border-radius: 24px;
+            padding: 1rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: white;
+            cursor: grab;
+            touch-action: none; /* better for pan/zoom handling on touch */
+        }
+
+        canvas:active {
+            cursor: grabbing;
+        }
+
+        .graph-tools {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+            gap: 12px;
+        }
+
+        .reset-btn {
+            background: #2c3e66;
+            border: none;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .reset-btn:hover {
+            background: #1e2a4a;
+            transform: scale(0.97);
+        }
+
+        .fig-caption {
+            font-size: 0.9rem;
+            color: #4a627a;
+            margin-top: 0.75rem;
+            text-align: center;
+            font-style: italic;
+        }
+
+        /* responsive adjustments */
+        @media (max-width: 600px) {
+            .presentation-content {
+                padding: 1.5rem 1.2rem 80px 1.2rem;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
+            .text-block {
+                font-size: 1.4rem;
+            }
+            .reset-btn {
+                font-size: 0.75rem;
+                padding: 5px 12px;
+            }
+        }
+
+        /* --- BUTTON EXCLUSION ZONE & NAVIGATION (identical to slide 2) --- */
+        .nav-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            width: 140px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease, background 0.2s;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-prev {
+            background-color: #d32f2f;
+        }
+        .btn-prev:hover {
+            background-color: #b71c1c;
+        }
+
+        .btn-next {
+            background-color: #2e7d32;
+        }
+        .btn-next:hover {
+            background-color: #1b5e20;
+        }
+
+        @media (max-width: 600px) {
+            .nav-btn {
+                width: 120px;
+                height: 48px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="presentation-content">
+    <div class="content-card">
+        <!-- two paragraphs with LaTeX, following exact aesthetic -->
+        <div class="text-block">
+            As I said, the point of this presentation is to make clear what the differential \(\text{d}x\) means in calculus. Let's warm up with one-variable calculus, before moving on to multivariable calculus.
+        </div>
+        <div class="text-block">
+            Here's a graph of \(f(x)=e^{\sin(x)}\). You can move around in it and re-scale it. Let's say someone is asking you how big is \(\displaystyle\int_0^4 f(x)\,\text{d}x\). What does that mean?
+        </div>
+
+        <!-- interactive graph: x*ln(x) with pan & zoom, area under curve 1→5 highlighted -->
+        <div class="graph-interactive">
+            <div class="canvas-wrapper">
+                <canvas id="functionCanvas" width="800" height="500" style="width:100%; height:auto; max-width:1000px; aspect-ratio:800/500"></canvas>
+            </div>
+            <div class="graph-tools">
+                <button id="resetViewBtn" class="reset-btn">⟳ Reset view</button>
+            </div>
+            <div class="fig-caption">
+                🖱️ Drag to pan · Scroll to zoom (bounds: \(0 \le x \le 8\), \(-2 \le y \le 5\))<br>
+                📐 The shaded region between \(x=0\) and \(x=4\) represents \(\int_0^4 e^{\sin x} \,dx\) — geometric area (signed).
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="nav-controls">
+    <button id="prevButton" class="nav-btn btn-prev">← Previous</button>
+    <button id="nextButton" class="nav-btn btn-next">Next →</button>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    //  INTERACTIVE GRAPH: f(x) = x * ln(x)  with pan/zoom, limits
+    // --------------------------------------------------------------
+    (function() {
+        // --- world constraints (absolute bounds) ---
+        const WORLD_X_MIN = 0;
+        const WORLD_X_MAX = 8;
+        const WORLD_Y_MIN = -10;
+        const WORLD_Y_MAX = 20;
+        
+        // initial view (nice window showing the interesting part)
+        let xMin = -1;
+        let xMax = 7.5;
+        let yMin = -2;
+        let yMax = 5;
+        
+        // enforce initial bounds within world limits
+        function clampViewToWorld() {
+            let rangeX = xMax - xMin;
+            let rangeY = yMax - yMin;
+            if (xMin < WORLD_X_MIN) { xMin = WORLD_X_MIN; xMax = xMin + rangeX; }
+            if (xMax > WORLD_X_MAX) { xMax = WORLD_X_MAX; xMin = xMax - rangeX; }
+            if (yMin < WORLD_Y_MIN) { yMin = WORLD_Y_MIN; yMax = yMin + rangeY; }
+            if (yMax > WORLD_Y_MAX) { yMax = WORLD_Y_MAX; yMin = yMax - rangeY; }
+            // ensure positive width/height
+            if (xMin >= xMax) { xMin = WORLD_X_MIN; xMax = WORLD_X_MAX; }
+            if (yMin >= yMax) { yMin = WORLD_Y_MIN; yMax = WORLD_Y_MAX; }
+        }
+        
+        // DOM elements
+        const canvas = document.getElementById('functionCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // interaction state
+        let isDragging = false;
+        let dragStartX = 0, dragStartY = 0;
+        let dragStartXMin = 0, dragStartYMin = 0;
+        
+        // function f(x) = x * ln(x)  (natural log)
+        function f(x) {
+            return Math.exp(Math.sin(x));
+        }
+        
+        // coordinate transforms
+        function worldToCanvas(xWorld, yWorld) {
+            const rect = canvas.getBoundingClientRect();
+            const canvasW = canvas.width;
+            const canvasH = canvas.height;
+            const tx = ((xWorld - xMin) / (xMax - xMin)) * canvasW;
+            const ty = canvasH - ((yWorld - yMin) / (yMax - yMin)) * canvasH;
+            return { x: tx, y: ty };
+        }
+        
+        function canvasToWorld(canvasX, canvasY) {
+            const canvasW = canvas.width;
+            const canvasH = canvas.height;
+            const xWorld = xMin + (canvasX / canvasW) * (xMax - xMin);
+            const yWorld = yMin + ((canvasH - canvasY) / canvasH) * (yMax - yMin);
+            return { x: xWorld, y: yWorld };
+        }
+        
+        // draw grid, axes, labels, shaded area (integral 1→5), and the curve
+        function draw() {
+            if (!ctx) return;
+            const w = canvas.width;
+            const h = canvas.height;
+            if (w === 0 || h === 0) return;
+            
+            ctx.clearRect(0, 0, w, h);
+            
+            // ---- background grid (light) ----
+            ctx.save();
+            ctx.strokeStyle = "#cbd5e1";
+            ctx.lineWidth = 0.8;
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "12px 'Arial', sans-serif";
+            
+            // determine nice ticks for X and Y
+            const xRange = xMax - xMin;
+            const yRange = yMax - yMin;
+            const xStep = Math.pow(10, Math.floor(Math.log10(xRange / 5)));
+            const yStep = Math.pow(10, Math.floor(Math.log10(yRange / 5)));
+            
+            const startX = Math.ceil(xMin / xStep) * xStep;
+            for (let x = startX; x <= xMax; x += xStep) {
+                if (x < WORLD_X_MIN - 1e-9) continue;
+                const { x: screenX } = worldToCanvas(x, 0);
+                if (screenX >= 0 && screenX <= w) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, 0);
+                    ctx.lineTo(screenX, h);
+                    ctx.strokeStyle = "#e2e8f0";
+                    ctx.stroke();
+                    ctx.fillStyle = "#334155";
+                    ctx.fillText(x.toFixed(xStep < 1 ? 2 : 0), screenX + 4, h - 6);
+                }
+            }
+            
+            const startY = Math.ceil(yMin / yStep) * yStep;
+            for (let y = startY; y <= yMax; y += yStep) {
+                if (y < WORLD_Y_MIN - 1e-9) continue;
+                const { y: screenY } = worldToCanvas(0, y);
+                if (screenY >= 0 && screenY <= h) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, screenY);
+                    ctx.lineTo(w, screenY);
+                    ctx.strokeStyle = "#e2e8f0";
+                    ctx.stroke();
+                    ctx.fillStyle = "#334155";
+                    ctx.fillText(y.toFixed(yStep < 1 ? 1 : 0), 6, screenY - 3);
+                }
+            }
+            
+            // ---- axes (bold) ----
+            const originXWorld = 0;
+            const originYWorld = 0;
+            const { x: axisX, y: axisY } = worldToCanvas(originXWorld, originYWorld);
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#1e293b";
+            // x-axis
+            if (axisY >= 0 && axisY <= h) {
+                ctx.moveTo(0, axisY);
+                ctx.lineTo(w, axisY);
+                ctx.stroke();
+            }
+            // y-axis
+            if (axisX >= 0 && axisX <= w) {
+                ctx.moveTo(axisX, 0);
+                ctx.lineTo(axisX, h);
+                ctx.stroke();
+            }
+            
+            // arrow tips (simple)
+            ctx.fillStyle = "#1e293b";
+            if (axisY >= 0 && axisY <= h && xMax > 0) {
+                const { x: arrowX } = worldToCanvas(xMax - 0.15, 0);
+                if (arrowX <= w) {
+                    ctx.beginPath();
+                    ctx.moveTo(arrowX, axisY - 4);
+                    ctx.lineTo(arrowX + 6, axisY);
+                    ctx.lineTo(arrowX, axisY + 4);
+                    ctx.fill();
+                }
+            }
+            if (axisX >= 0 && axisX <= w && yMax > 0) {
+                const { y: arrowY } = worldToCanvas(0, yMax - 0.3);
+                if (arrowY >= 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(axisX - 4, arrowY);
+                    ctx.lineTo(axisX, arrowY - 6);
+                    ctx.lineTo(axisX + 4, arrowY);
+                    ctx.fill();
+                }
+            }
+            
+            // ---- SHADED AREA: integral from 0 to 4 (geometric meaning) ----
+            const a_integral = 0;
+            const b_integral = 4;
+            // only draw if interval overlaps with view
+            if (b_integral > xMin && a_integral < xMax) {
+                const leftBound = Math.max(a_integral, xMin);
+                const rightBound = Math.min(b_integral, xMax);
+                // sample polygon points for shading
+                const steps = Math.max(80, Math.floor((rightBound - leftBound) / (xMax - xMin) * 400));
+                const stepX = (rightBound - leftBound) / steps;
+                ctx.beginPath();
+                let firstPoint = true;
+                for (let i = 0; i <= steps; i++) {
+                    const x = leftBound + i * stepX;
+                    const yVal = f(x);
+                    if (!isNaN(yVal)) {
+                        const { x: sx, y: sy } = worldToCanvas(x, yVal);
+                        if (firstPoint) {
+                            ctx.moveTo(sx, sy);
+                            firstPoint = false;
+                        } else {
+                            ctx.lineTo(sx, sy);
+                        }
+                    }
+                }
+                // close down to baseline (y=0 axis)
+                const { x: sxRight, y: syRightBase } = worldToCanvas(rightBound, 0);
+                const { x: sxLeft, y: syLeftBase } = worldToCanvas(leftBound, 0);
+                ctx.lineTo(sxRight, syRightBase);
+                ctx.lineTo(sxLeft, syLeftBase);
+                ctx.closePath();
+                ctx.fillStyle = "rgba(46, 125, 50, 0.25)";
+                ctx.fill();
+                ctx.strokeStyle = "#2e7d32";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                
+                // vertical dashed lines at the integration bounds
+                if (a_integral >= xMin && a_integral <= xMax) {
+                    const { x: lineX } = worldToCanvas(a_integral, 0);
+                    ctx.beginPath();
+                    ctx.setLineDash([6, 6]);
+                    ctx.moveTo(lineX, 0);
+                    ctx.lineTo(lineX, h);
+                    ctx.strokeStyle = "#2e7d32";
+                    ctx.stroke();
+                    ctx.fillStyle = "#2c5e2a";
+                    ctx.font = "bold 12px 'Arial'";
+                    ctx.fillText(`x = ${a_integral}`, lineX + 5, axisY - 8);
+                }
+                if (b_integral >= xMin && b_integral <= xMax) {
+                    const { x: lineX } = worldToCanvas(b_integral, 0);
+                    ctx.beginPath();
+                    ctx.setLineDash([6, 6]);
+                    ctx.moveTo(lineX, 0);
+                    ctx.lineTo(lineX, h);
+                    ctx.stroke();
+                    ctx.fillStyle = "#2c5e2a";
+                    ctx.fillText(`x = ${b_integral}`, lineX + 5, axisY - 8);
+                }
+                ctx.setLineDash([]);
+            }
+            
+            // ---- plot f(x)=x*ln(x) ----
+            ctx.beginPath();
+            ctx.lineWidth = 2.8;
+            ctx.strokeStyle = "#d32f2f";
+            ctx.lineJoin = "round";
+            let first = true;
+            const samples = Math.max(200, Math.floor((xMax - xMin) / (xMax - xMin) * 500));
+            for (let i = 0; i <= samples; i++) {
+                const t = i / samples;
+                const x = xMin + t * (xMax - xMin);
+                if (x <= 0) {
+                    first = true;
+                    continue;
+                }
+                const y = f(x);
+                if (isNaN(y)) {
+                    first = true;
+                    continue;
+                }
+                const { x: sx, y: sy } = worldToCanvas(x, y);
+                if (sy < -100 || sy > canvas.height + 100) {
+                    first = true;
+                    continue;
+                }
+                if (first) {
+                    ctx.moveTo(sx, sy);
+                    first = false;
+                } else {
+                    ctx.lineTo(sx, sy);
+                }
+            }
+            ctx.stroke();
+            
+            // mark small dots at integer points for emphasis
+            for (let ix = 0; ix <= 7; ix++) {
+                const yVal = f(ix);
+                if (!isNaN(yVal) && ix >= xMin && ix <= xMax && yVal >= yMin && yVal <= yMax) {
+                    const { x: sx, y: sy } = worldToCanvas(ix, yVal);
+                    ctx.beginPath();
+                    ctx.fillStyle = "#b91c1c";
+                    ctx.arc(sx, sy, 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = "#ffffff";
+                    ctx.arc(sx, sy, 1.5, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            }
+            
+            ctx.restore();
+            
+            // optional annotation: label function
+            ctx.font = "italic 14px 'Arial'";
+            ctx.fillStyle = "#b91c1c";
+            const { x: labelX, y: labelY } = worldToCanvas(2.2, f(2.2) + 0.35);
+            if (labelX < canvas.width - 20 && labelY > 20) {
+                ctx.fillText("f(x) = e^{sin x}", labelX, labelY);
+            }
+        }
+        
+        // resize canvas to match container pixel dimensions (sharp rendering)
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const maxWidth = Math.min(1000, container.clientWidth - 20);
+            const aspect = 500 / 800;  // height/width
+            const newWidth = maxWidth;
+            const newHeight = newWidth * aspect;
+            canvas.style.width = `${newWidth}px`;
+            canvas.style.height = `${newHeight}px`;
+            // actual pixel dimensions for sharpness
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            draw();
+        }
+        
+        // pan & zoom helpers with limits
+        function pan(dxWorld, dyWorld) {
+            let newXMin = xMin - dxWorld;
+            let newXMax = xMax - dxWorld;
+            let newYMin = yMin - dyWorld;
+            let newYMax = yMax - dyWorld;
+            
+            // clamping to world boundaries
+            if (newXMin < WORLD_X_MIN) { newXMin = WORLD_X_MIN; newXMax = newXMin + (xMax - xMin); }
+            if (newXMax > WORLD_X_MAX) { newXMax = WORLD_X_MAX; newXMin = newXMax - (xMax - xMin); }
+            if (newYMin < WORLD_Y_MIN) { newYMin = WORLD_Y_MIN; newYMax = newYMin + (yMax - yMin); }
+            if (newYMax > WORLD_Y_MAX) { newYMax = WORLD_Y_MAX; newYMin = newYMax - (yMax - yMin); }
+            
+            xMin = newXMin;
+            xMax = newXMax;
+            yMin = newYMin;
+            yMax = newYMax;
+            draw();
+        }
+        
+        function zoom(factor, centerXWorld, centerYWorld) {
+            if (factor <= 0) return;
+            const newWidth = (xMax - xMin) / factor;
+            const newHeight = (yMax - yMin) / factor;
+            let newXMin = centerXWorld - (centerXWorld - xMin) / factor;
+            let newXMax = newXMin + newWidth;
+            let newYMin = centerYWorld - (centerYWorld - yMin) / factor;
+            let newYMax = newYMin + newHeight;
+            
+            // apply world constraints
+            if (newXMin < WORLD_X_MIN) { newXMin = WORLD_X_MIN; newXMax = newXMin + newWidth; }
+            if (newXMax > WORLD_X_MAX) { newXMax = WORLD_X_MAX; newXMin = newXMax - newWidth; }
+            if (newYMin < WORLD_Y_MIN) { newYMin = WORLD_Y_MIN; newYMax = newYMin + newHeight; }
+            if (newYMax > WORLD_Y_MAX) { newYMax = WORLD_Y_MAX; newYMin = newYMax - newHeight; }
+            
+            // avoid invalid ranges
+            if (newXMax - newXMin > 0.01 && newYMax - newYMin > 0.01) {
+                xMin = newXMin;
+                xMax = newXMax;
+                yMin = newYMin;
+                yMax = newYMax;
+                draw();
+            }
+        }
+        
+        // reset to initial beautiful view
+        function resetView() {
+            xMin = 0;
+            xMax = 4.5;
+            yMin = -2;
+            yMax = 5;
+            clampViewToWorld();
+            draw();
+        }
+        
+        // --- event binding for pan & zoom ---
+        function handleMouseDown(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const canvasX = (clientX - rect.left) * scaleX;
+            const canvasY = (clientY - rect.top) * scaleY;
+            const world = canvasToWorld(canvasX, canvasY);
+            dragStartX = canvasX;
+            dragStartY = canvasY;
+            dragStartXMin = xMin;
+            dragStartYMin = yMin;
+            isDragging = true;
+            canvas.style.cursor = "grabbing";
+        }
+        
+        function handleMouseMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const canvasX = (clientX - rect.left) * scaleX;
+            const canvasY = (clientY - rect.top) * scaleY;
+            const deltaX = canvasX - dragStartX;
+            const deltaY = canvasY - dragStartY;
+            const dxWorld = (deltaX / canvas.width) * (xMax - xMin);
+            const dyWorld = -(deltaY / canvas.height) * (yMax - yMin);
+            let newXMin = dragStartXMin - dxWorld;
+            let newXMax = newXMin + (xMax - xMin);
+            let newYMin = dragStartYMin - dyWorld;
+            let newYMax = newYMin + (yMax - yMin);
+            // clamp
+            if (newXMin < WORLD_X_MIN) { newXMin = WORLD_X_MIN; newXMax = newXMin + (xMax - xMin); }
+            if (newXMax > WORLD_X_MAX) { newXMax = WORLD_X_MAX; newXMin = newXMax - (xMax - xMin); }
+            if (newYMin < WORLD_Y_MIN) { newYMin = WORLD_Y_MIN; newYMax = newYMin + (yMax - yMin); }
+            if (newYMax > WORLD_Y_MAX) { newYMax = WORLD_Y_MAX; newYMin = newYMax - (yMax - yMin); }
+            xMin = newXMin;
+            xMax = newXMax;
+            yMin = newYMin;
+            yMax = newYMax;
+            draw();
+        }
+        
+        function handleMouseUp(e) {
+            isDragging = false;
+            canvas.style.cursor = "grab";
+        }
+        
+        function handleWheel(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = (e.clientX - rect.left) * scaleX;
+            const canvasY = (e.clientY - rect.top) * scaleY;
+            if (canvasX >= 0 && canvasX <= canvas.width && canvasY >= 0 && canvasY <= canvas.height) {
+                const worldCenter = canvasToWorld(canvasX, canvasY);
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                zoom(delta, worldCenter.x, worldCenter.y);
+            } else {
+                // fallback: zoom to center of view
+                const centerX = (xMin + xMax) / 2;
+                const centerY = (yMin + yMax) / 2;
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                zoom(delta, centerX, centerY);
+            }
+        }
+        
+        // attach events
+        function initInteractivity() {
+            canvas.addEventListener('mousedown', handleMouseDown);
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('wheel', handleWheel, { passive: false });
+            canvas.addEventListener('touchstart', handleMouseDown, { passive: false });
+            window.addEventListener('touchmove', handleMouseMove, { passive: false });
+            window.addEventListener('touchend', handleMouseUp);
+            canvas.style.cursor = "grab";
+            document.getElementById('resetViewBtn').addEventListener('click', resetView);
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                draw();
+            });
+            resizeCanvas();
+            draw();
+        }
+        
+        // ensure canvas is ready after DOM
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initInteractivity);
+        } else {
+            initInteractivity();
+        }
+    })();
+    
+    // --------------------------------------------------------------
+    //  NAVIGATION LOGIC (arithmetic filename based, same as slide 2)
+    // --------------------------------------------------------------
+    let currentSlideNumber = null;
+    
+    function getCurrentSlideNumber() {
+        const path = window.location.pathname;
+        const filename = path.substring(path.lastIndexOf('/') + 1);
+        const match = filename.match(/^(\d+)\.html$/);
+        return match ? parseInt(match[1], 10) : null;
+    }
+    
+
+    
+    function updatePrevButtonVisibility() {
+        const prevBtn = document.getElementById("prevButton");
+        if (!currentSlideNumber || currentSlideNumber <= 1) {
+            prevBtn.style.display = 'none';
+        } else {
+            prevBtn.style.display = 'flex';
+        }
+    }
+    
+    function updateNextButtonVisibility() {
+        const nextBtn = document.getElementById("nextButton");
+        nextBtn.style.display = 'flex';
+    }
+    
+    function navigateToSlide(targetNumber) {
+        if (targetNumber < 1) return;
+        window.location.href = `${targetNumber}.html`;
+    }
+    
+    function handlePrevious() {
+        if (!currentSlideNumber) return;
+        const prevNum = currentSlideNumber - 1;
+        if (prevNum >= 1) navigateToSlide(prevNum);
+    }
+    
+    function handleNext() {
+        if (!currentSlideNumber) return;
+        const nextNum = currentSlideNumber + 1;
+        navigateToSlide(nextNum);
+    }
+    
+    const prevButton = document.getElementById("prevButton");
+    const nextButton = document.getElementById("nextButton");
+    
+    function initNavigation() {
+        currentSlideNumber = getCurrentSlideNumber();
+        updatePrevButtonVisibility();
+        updateNextButtonVisibility();
+        prevButton.addEventListener("click", handlePrevious);
+        nextButton.addEventListener("click", handleNext);
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initNavigation);
+    } else {
+        initNavigation();
+    }
+</script>
+</body>
+</html>

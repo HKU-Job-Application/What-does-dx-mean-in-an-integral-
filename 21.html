@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Double integrals · Polar coordinates · Averaging and rewriting the sum</title>
+    <!-- MathJax configuration for LaTeX rendering (consistent with previous slides) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        /* ----- GLOBAL RESET & BASE STYLES (identical to previous slides) ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #f8faff 0%, #f0f3fd 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        /* main content wrapper: respects button exclusion zone (bottom 80px) */
+        .presentation-content {
+            flex: 1;
+            min-height: calc(100vh - 80px);
+            padding: 2rem 2rem 80px 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .content-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 2rem 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        /* text styling — clean, readable presentation style */
+        .text-block {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            font-weight: 500;
+            color: #1a2c3e;
+            margin-bottom: 1.5rem;
+        }
+        /* responsive adjustments for smaller screens */
+        @media (max-width: 800px) {
+            .presentation-content { padding: 1rem 1rem 80px 1rem; }
+            .content-card { padding: 1.2rem; }
+            .text-block { font-size: 1rem; }
+        }
+
+        /* ----- FIXED NAVIGATION BUTTONS (exactly as per spec) ----- */
+        .nav-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            pointer-events: none;   /* container does not interfere, buttons re-enable */
+            z-index: 1000;
+        }
+        .nav-btn {
+            width: 140px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background-color 0.2s ease;
+        }
+        .btn-prev {
+            background-color: #d32f2f;
+        }
+        .btn-prev:hover {
+            background-color: #b71c1c;
+        }
+        .btn-next {
+            background-color: #2e7d32;
+        }
+        .btn-next:hover {
+            background-color: #1b5e20;
+        }
+        @media (max-width: 600px) {
+            .nav-btn {
+                width: 120px;
+                height: 48px;
+                font-size: 1rem;
+            }
+            .nav-controls {
+                padding: 0 20px;
+            }
+        }
+        /* content bottom exclusion zone enforced by .presentation-content padding-bottom: 80px */
+    </style>
+</head>
+<body>
+<div class="presentation-content">
+    <div class="content-card">
+        <!-- ========== EXACT TEXT CONTENT AS PROVIDED ========== -->
+        <div class="text-block">
+            Notice something interesting. $\sqrt{2}\dfrac{i+\frac{1}{2}}{n}$ is exactly the average of $r_i=\sqrt{2}\dfrac{i}{n}$ and $r_{i+1}=\sqrt{2}\dfrac{i+1}{n}$. Let's rewrite the same expression.
+        </div>
+        <div class="text-block">
+            \[
+            \sum_{0\leq i,j\leq n-1} f(x,y)|_{(x,y)\text{ is some point in the C-piece paired to }R_{i,j}}\,\text{Av}(r_i,r_{i+1})\,(r_{i+1}-r_i)(\theta_{j+1}-\theta_j)
+            \]
+        </div>
+        <div class="text-block">
+            Finally, it would be interesting to see what happens, if we want every quantity in the sum to belong to the "pretend" $r\theta$ world. There's no theoretical reason why we must - the above expression is fine. But if we do make that transfer, we can discover why anyone would bother with the $r\theta$ substitution in the first place. It ends up with an expression that is more familiar and easier algebraically.
+        </div>
+        <div class="text-block">
+            Expressing these values of $f(x,y)$ (which we are still using) in terms of $r_i$ and $\theta_i$, is helped by the fact that the $f(x,y)$ we're looking at is $\exp(-x^2-y^2)$.
+        </div>
+        <div class="text-block">
+            Now, what value does $\exp(-x^2-y^2)$ have, where $(x,y)$ is indeed some point in the C-piece paired to $R_{i,j}$? (Any point in the C-piece is fine, we don't have to worry about this particular point or that; as I've stated, Riemann showed that mathematically it won't make a difference to the final answer as we use better and better divisions of $C$.) Well, $x^2+y^2$ is the square of what the $r$-coordinate would be in the "pretend" $r\theta$ space. (If you've forgotten why, let's remember that $x=r\cos(\theta)$ and $y=r\sin(\theta)$.) Since we're looking at $R_{i,j}$, the $r$-coordinate ranges from $r_i$ to $r_{i+1}$.
+        </div>
+        <div class="text-block">
+            So, since any point within the C-piece is okay, let's just take $\exp(-x^2-y^2)$ to be $\exp(-r_i^2)$. We can finally rewrite the sum we want, as
+        </div>
+        <div class="text-block">
+            \[
+            \sum_{0\leq i,j\leq n-1} \exp(-r_i^2)\,\text{Av}(r_i,r_{i+1})\,(r_{i+1}-r_i)(\theta_{j+1}-\theta_j)
+            \]
+        </div>
+    </div>
+</div>
+
+<!-- ========== FIXED NAVIGATION BUTTONS (numeric arithmetic based on filename) ========== -->
+<div class="nav-controls">
+    <button id="prevButton" class="nav-btn btn-prev">← Previous</button>
+    <button id="nextButton" class="nav-btn btn-next">Next →</button>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // Navigation logic: extract numeric base from filename (e.g., 22.html -> 22)
+    // and navigate to previous/next arithmetic filename.
+    // No existence checks; always performs navigation.
+    // --------------------------------------------------------------
+    function getCurrentNumber() {
+        const path = window.location.pathname;
+        // match numbers before .html at the end of the filename
+        const match = path.match(/(\d+)\.html$/);
+        if (match) {
+            return parseInt(match[1], 10);
+        }
+        // fallback: if for some reason no number found, assume this is slide 22
+        return 22;
+    }
+
+    const prevBtn = document.getElementById('prevButton');
+    const nextBtn = document.getElementById('nextButton');
+
+    prevBtn.addEventListener('click', () => {
+        const cur = getCurrentNumber();
+        const prevNum = cur - 1;
+        window.location.href = prevNum + '.html';
+    });
+
+    nextBtn.addEventListener('click', () => {
+        const cur = getCurrentNumber();
+        const nextNum = cur + 1;
+        window.location.href = nextNum + '.html';
+    });
+</script>
+</body>
+</html>

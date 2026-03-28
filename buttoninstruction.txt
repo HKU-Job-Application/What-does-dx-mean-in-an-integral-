@@ -1,0 +1,58 @@
+### Technical Specification: Slide Navigation & Layout
+
+**1. Document Structure & Base Styles**
+- All slides must be self-contained HTML files.
+- A global CSS reset or a consistent set of styles must be applied to ensure uniform box-sizing and margin/padding removal.
+- The `<body>` must have a relative or static position, but the main content container must manage the layout to respect the button exclusion zone.
+
+**2. Button Exclusion Zone (Content Safety Margin)**
+- Define a "button zone" at the bottom of the viewport. This zone occupies the last **80 pixels** of the vertical space.
+- **No main content** (text, diagrams, equations, or interactive elements) may extend into this bottom 80-pixel zone. All primary slide content must be contained within a wrapper (e.g., `<div class="content">`) that has a `min-height` calculated as `calc(100vh - 80px)` or uses a flexbox layout that reserves this space.
+- This ensures that buttons are never obscured by content and that the user does not have to scroll to navigate.
+
+**3. Button Styling & Positioning**
+- **Positioning Method:** Use CSS Grid or Flexbox on the body or a main wrapper to pin the buttons to the bottom edge, or use fixed positioning relative to the viewport. Fixed positioning is preferred for persistence during scroll.
+- **Container:** Buttons are placed inside a `<div class="nav-controls">` that is fixed to the bottom of the viewport.
+    - `position: fixed;`
+    - `bottom: 20px;` (not touching the very edge)
+    - `left: 0;`
+    - `right: 0;`
+    - `height: 60px;` (provides a clickable area)
+    - `display: flex;`
+    - `justify-content: space-between;`
+    - `padding: 0 30px;` (ensures buttons are not snug to left/right edges)
+    - `pointer-events: none;` (container does not interfere, but buttons re-enable events)
+- **Button Styling:**
+    - **Dimensions:** Fixed width of `140px`, height of `50px`.
+    - **Typography:** White text, bold, sans-serif, centered.
+    - **Border:** None, with a slight border-radius of `8px`.
+    - **Cursor:** `pointer`.
+    - **Box Shadow:** Subtle drop shadow for depth.
+    - **Pointer Events:** `pointer-events: auto;` to override container.
+- **"Previous Slide" Button (Left):**
+    - Background color: `#d32f2f` (Red)
+    - Text: "← Previous"
+- **"Next Slide" Button (Right):**
+    - Background color: `#2e7d32` (Deep Green)
+    - Text: "Next →"
+- Button Visibility:
+Both the "Previous" and "Next" buttons must always be visible (display: flex), even on the first or last slide. No existence check or boundary detection should hide them.
+
+**4. Navigation Logic (Filename-Based)**
+- Files are named with numeric filenames followed by `.html` (e.g., `1.html`, `2.html`, `12.html`). There is no "slide" prefix.
+- Each slide must include inline JavaScript that:
+    1.  Extracts the current filename from `window.location.pathname`.
+    2.  Parses the numeric portion (e.g., from `/path/to/5.html` it extracts `5`).
+    3.  On clicking the **red "Previous" button**, constructs the previous filename by subtracting 1 from the number (e.g., `4.html`) and navigates to it.
+    4.  On clicking the **deep green "Next" button**, constructs the next filename by adding 1 to the number (e.g., `6.html`) and navigates to it.
+    5.  Does **not** hardcode specific filenames like `slide1.html` or `5.html`. The navigation must be purely arithmetic based on the current file's numeric name.
+No existence checks: The script must not attempt to detect whether the next or previous file actually exists.
+
+The buttons must always be visible and clickable. Clicking a button simply navigates to the arithmetic filename (current-1.html or current+1.html).
+
+If the target file does not exist, the browser will show a standard 404 page – this is acceptable.
+
+
+**5. Responsive Behavior**
+- On smaller screens (width < 600px), button width may reduce to `120px`, and the bottom padding of the content area must remain at `80px` to preserve the exclusion zone.
+- Buttons must remain clearly visible and not overlap on any viewport size.

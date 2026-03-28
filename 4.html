@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Riemann sums · e^{sin x} · Interactive Calculus</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #f8faff 0%, #f0f3fd 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .presentation-content {
+            flex: 1;
+            min-height: calc(100vh - 80px);
+            padding: 2rem 2rem 80px 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .content-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 2rem 2.5rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .text-block {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            font-weight: 500;
+            color: #1a2c3e;
+            margin-bottom: 1.2rem;
+        }
+        .graph-interactive {
+            margin-top: 2rem;
+            background: #ffffffdd;
+            border-radius: 24px;
+            padding: 1rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+        .riemann-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            background: #f9fafc;
+            padding: 0.75rem 1rem;
+            border-radius: 60px;
+            border: 1px solid #e2edf2;
+        }
+        .slider-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            flex: 2;
+        }
+        .slider-area label {
+            font-weight: 600;
+            color: #1e4660;
+            font-size: 0.85rem;
+        }
+        input[type="range"] {
+            width: 260px;
+            cursor: pointer;
+            background: #cbdae9;
+            height: 4px;
+            border-radius: 5px;
+        }
+        .n-value {
+            background: #2c3e66;
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .estimate-card {
+            background: rgba(255, 248, 225, 0.98);
+            border-left: 5px solid #2e7d32;
+            border-radius: 16px;
+            padding: 0.7rem 1.2rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            font-family: monospace;
+        }
+        .estimate-card .math-row {
+            margin: 0.25rem 0;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+        }
+        .canvas-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: white;
+            cursor: grab;
+            touch-action: none;
+        }
+        canvas:active { cursor: grabbing; }
+        .graph-tools {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+            gap: 12px;
+        }
+        .reset-btn {
+            background: #2c3e66;
+            border: none;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+        .reset-btn:hover {
+            background: #1e2a4a;
+            transform: scale(0.97);
+        }
+        .fig-caption {
+            font-size: 0.8rem;
+            color: #4a627a;
+            margin-top: 0.75rem;
+            text-align: center;
+            font-style: italic;
+        }
+        @media (max-width: 600px) {
+            .presentation-content { padding: 1.2rem 1rem 80px 1rem; }
+            .content-card { padding: 1.2rem; }
+            .text-block { font-size: 0.85rem; }
+            .slider-area input[type="range"] { width: 180px; }
+        }
+        .nav-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .nav-btn {
+            width: 140px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-prev { background-color: #d32f2f; }
+        .btn-prev:hover { background-color: #b71c1c; }
+        .btn-next { background-color: #2e7d32; }
+        .btn-next:hover { background-color: #1b5e20; }
+        @media (max-width: 600px) {
+            .nav-btn { width: 120px; height: 48px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="presentation-content">
+    <div class="content-card">
+        <div class="text-block">
+            The function has no elementary anti-derivative (i.e. one that can be written out as a combination of the usual functions). The value of the integral probably isn't elementary. We could just "call" the value \(c\), in the same way that Euler came up with the name \(e\), but that wouldn't be of any use. So, we're going to have to estimate the value numerically.
+        </div>
+        <div class="text-block">
+            How do we estimate the value numerically? You've probably seen this procedure before. Divide up the interval \([0,4]\) into little sub-intervals, and then on top of each sub-interval draw a rectangle as high as the function is on the sub-interval. The combined area of these thin rectangles is pretty close to the value of the integral. And, the thinner we make all the rectangles to be, the closer we get to the actual value.
+        </div>
+        <div class="text-block">
+            (We said to draw on each sub-interval a rectangle with the same height as the function on that sub-interval. You may ask: the function isn't quite constant on that sub-interval, so do we take the slightly shorter or slightly taller height? And how do we decide whether these tiny sub-intervals should be of equal width, or whether some can be wider than others? Riemann proved that for a continuous function like this, it doesn't matter. As long as we have some arrangement where every width is less than \(\epsilon\), and then push \(\epsilon\) towards zero, the combined area will always tend towards one fixed value.)
+        </div>
+        <div class="text-block">
+            Check out the graph below: you can interact with it like the last slide, but you can now divide the interval into little parts by pushing the slider, and you can see how the value of the estimated area gets closer to the actual area.
+        </div>
+
+        <div class="graph-interactive">
+            <div class="riemann-panel">
+                <div class="slider-area">
+                    <label>📐 Subintervals (n):</label>
+                    <input type="range" id="nSlider" min="0" max="4" step="1" value="2">
+                    <span class="n-value" id="nValueDisplay">n = 10</span>
+                </div>
+            </div>
+            <div id="estimateTextBox" class="estimate-card" style="display: flex; flex-direction: column;">
+                <div class="math-row" id="riemannFormula"></div>
+                <div class="math-row" id="actualAreaLine"></div>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="functionCanvas" width="800" height="500" style="width:100%; height:auto; max-width:1000px; aspect-ratio:800/500"></canvas>
+            </div>
+            <div class="graph-tools">
+                <button id="resetViewBtn" class="reset-btn">⟳ Reset view</button>
+            </div>
+            <div class="fig-caption">
+                🖱️ Drag to pan · Scroll to zoom (bounds: \(0 \le x \le 8\), \(-2 \le y \le 5\))<br>
+                📐 Light blue rectangles: left Riemann sum approximation for \(\int_0^4 e^{\sin x} \, dx\). Slider selects number of equal subintervals.
+            </div>
+        </div>
+    </div>
+</div>
+<div class="nav-controls">
+    <button id="prevButton" class="nav-btn btn-prev">← Previous</button>
+    <button id="nextButton" class="nav-btn btn-next">Next →</button>
+</div>
+
+<script>
+    (function() {
+        // World bounds
+        const WORLD_X_MIN = 0, WORLD_X_MAX = 8, WORLD_Y_MIN = -2, WORLD_Y_MAX = 5;
+        let xMin = 0, xMax = 5.2, yMin = -1.2, yMax = 4.5;
+        function clampViewToWorld() {
+            let rx = xMax - xMin, ry = yMax - yMin;
+            if (xMin < WORLD_X_MIN) { xMin = WORLD_X_MIN; xMax = xMin + rx; }
+            if (xMax > WORLD_X_MAX) { xMax = WORLD_X_MAX; xMin = xMax - rx; }
+            if (yMin < WORLD_Y_MIN) { yMin = WORLD_Y_MIN; yMax = yMin + ry; }
+            if (yMax > WORLD_Y_MAX) { yMax = WORLD_Y_MAX; yMin = yMax - ry; }
+            if (xMin >= xMax) { xMin = WORLD_X_MIN; xMax = WORLD_X_MAX; }
+            if (yMin >= yMax) { yMin = WORLD_Y_MIN; yMax = WORLD_Y_MAX; }
+        }
+
+        // function f(x) = e^(sin x)
+        function f(x) { return Math.exp(Math.sin(x)); }
+
+        // ----- EXACT precomputed approximations (provided) -----
+        const ACTUAL_AREA = 6.7964724214;
+        const APPROX_MAP = {
+            5: 6.9394972002,
+            10: 6.8852370939,
+            20: 6.8452016245,
+            50: 6.8170089951
+        };
+
+        function getEstimatedAreaRounded(n) {
+            if (n <= 0) return 0;
+            const raw = APPROX_MAP[n] || 0;
+            return Math.round(raw * 10000) / 10000;
+        }
+
+        // visual left Riemann sum (only for drawing rectangles)
+        function leftRiemannSumForDrawing(n) {
+            if (n <= 0) return 0;
+            const dx = 4 / n;
+            let total = 0;
+            for (let k = 0; k < n; k++) {
+                const xk = k * dx;
+                total += f(xk) * dx;
+            }
+            return total;
+        }
+
+        // canvas elements
+        const canvas = document.getElementById('functionCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const allowedN = [0, 5, 10, 20, 50];
+        let currentN = 10;   // corresponds to index 2
+        const nSlider = document.getElementById('nSlider');
+        const nValueDisplay = document.getElementById('nValueDisplay');
+        const estimateTextBox = document.getElementById('estimateTextBox');
+        const riemannFormulaDiv = document.getElementById('riemannFormula');
+        const actualAreaLineDiv = document.getElementById('actualAreaLine');
+
+        nSlider.addEventListener('input', (e) => {
+            let idx = parseInt(e.target.value, 10);
+            let snapped = allowedN[idx];
+            currentN = snapped;
+            nSlider.value = idx;
+            nValueDisplay.innerText = `n = ${currentN}`;
+            updateRiemannTextBox();
+            draw();
+        });
+
+        // initial setting
+        nSlider.value = "2";
+        nValueDisplay.innerText = `n = ${currentN}`;
+
+        async function updateRiemannTextBox() {
+            if (currentN === 0) {
+                estimateTextBox.style.display = 'none';
+                return;
+            }
+            estimateTextBox.style.display = 'flex';
+            const estVal = getEstimatedAreaRounded(currentN);
+            const actualRounded = Math.round(ACTUAL_AREA * 10000) / 10000;
+            const nVal = currentN;
+            const latexSum = `\\sum_{k=0}^{${nVal-1}} e^{\\sin\\left(\\frac{4k}{${nVal}}\\right)} \\cdot \\frac{4}{${nVal}}`;
+            const approxLine = `${latexSum} \\approx ${estVal.toFixed(4)}`;
+            const actualLine = `\\text{Actual area} = \\int_0^4 e^{\\sin x}\\,dx \\approx ${actualRounded.toFixed(4)}`;
+            riemannFormulaDiv.innerHTML = `📊 Estimated area: \\(${approxLine}\\)`;
+            actualAreaLineDiv.innerHTML = `🎯 \\(${actualLine}\\)`;
+            if (window.MathJax) {
+                await MathJax.typesetPromise([riemannFormulaDiv, actualAreaLineDiv]);
+            }
+        }
+
+        // coordinate transforms
+        function worldToCanvas(xWorld, yWorld) {
+            const w = canvas.width, h = canvas.height;
+            const tx = ((xWorld - xMin) / (xMax - xMin)) * w;
+            const ty = h - ((yWorld - yMin) / (yMax - yMin)) * h;
+            return { x: tx, y: ty };
+        }
+        function canvasToWorld(canvasX, canvasY) {
+            const w = canvas.width, h = canvas.height;
+            const xWorld = xMin + (canvasX / w) * (xMax - xMin);
+            const yWorld = yMin + ((h - canvasY) / h) * (yMax - yMin);
+            return { x: xWorld, y: yWorld };
+        }
+
+        // drawing helpers
+        function drawShadedArea() {
+            const a = 0, b = 4;
+            if (b <= xMin || a >= xMax) return;
+            const left = Math.max(a, xMin), right = Math.min(b, xMax);
+            const steps = Math.max(80, Math.floor((right - left) / (xMax - xMin) * 400));
+            const step = (right - left) / steps;
+            ctx.beginPath();
+            let first = true;
+            for (let i = 0; i <= steps; i++) {
+                const x = left + i * step;
+                const yVal = f(x);
+                if (!isNaN(yVal)) {
+                    const { x: sx, y: sy } = worldToCanvas(x, yVal);
+                    if (first) { ctx.moveTo(sx, sy); first = false; }
+                    else ctx.lineTo(sx, sy);
+                }
+            }
+            const { x: sxR, y: syBR } = worldToCanvas(right, 0);
+            const { x: sxL, y: syBL } = worldToCanvas(left, 0);
+            ctx.lineTo(sxR, syBR);
+            ctx.lineTo(sxL, syBL);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(46, 125, 50, 0.25)";
+            ctx.fill();
+            ctx.strokeStyle = "#2e7d32";
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+        }
+
+        function drawRiemannRectangles() {
+            if (currentN === 0) return;
+            const n = currentN;
+            const dx = 4 / n;
+            for (let k = 0; k < n; k++) {
+                const xLeft = k * dx;
+                const xRight = (k + 1) * dx;
+                if (xRight < xMin || xLeft > xMax) continue;
+                const leftClip = Math.max(xLeft, xMin);
+                const rightClip = Math.min(xRight, xMax);
+                if (leftClip >= rightClip) continue;
+                const heightVal = f(xLeft);
+                const { x: sxL } = worldToCanvas(leftClip, 0);
+                const { x: sxR } = worldToCanvas(rightClip, 0);
+                const { y: topY } = worldToCanvas(leftClip, heightVal);
+                const { y: bottomY } = worldToCanvas(leftClip, 0);
+                const rectX = sxL;
+                const rectW = sxR - sxL;
+                const rectY = Math.min(topY, bottomY);
+                const rectH = Math.abs(bottomY - topY);
+                if (rectW <= 0 || rectH <= 0) continue;
+                ctx.fillStyle = "rgba(54, 162, 235, 0.35)";
+                ctx.fillRect(rectX, rectY, rectW, rectH);
+                ctx.strokeStyle = "#1e6f9f";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(rectX, rectY, rectW, rectH);
+            }
+        }
+
+        function drawGridAndAxes() {
+            const w = canvas.width, h = canvas.height;
+            ctx.save();
+            ctx.strokeStyle = "#cbd5e1";
+            ctx.lineWidth = 0.6;
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "11px 'Arial', sans-serif";
+            const xRange = xMax - xMin, yRange = yMax - yMin;
+            const xStep = Math.pow(10, Math.floor(Math.log10(xRange / 5)));
+            const yStep = Math.pow(10, Math.floor(Math.log10(yRange / 5)));
+            for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax; x += xStep) {
+                if (x < WORLD_X_MIN - 1e-8) continue;
+                const { x: sx } = worldToCanvas(x, 0);
+                if (sx >= 0 && sx <= w) {
+                    ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, h);
+                    ctx.strokeStyle = "#e2e8f0"; ctx.stroke();
+                    ctx.fillStyle = "#334155";
+                    ctx.fillText(x.toFixed(xStep < 1 ? 2 : 0), sx + 4, h - 6);
+                }
+            }
+            for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax; y += yStep) {
+                if (y < WORLD_Y_MIN - 1e-8) continue;
+                const { y: sy } = worldToCanvas(0, y);
+                if (sy >= 0 && sy <= h) {
+                    ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(w, sy);
+                    ctx.strokeStyle = "#e2e8f0"; ctx.stroke();
+                    ctx.fillStyle = "#334155";
+                    ctx.fillText(y.toFixed(yStep < 0.5 ? 2 : 1), 6, sy - 3);
+                }
+            }
+            const { x: axisX, y: axisY } = worldToCanvas(0, 0);
+            ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = "#1e293b";
+            if (axisY >= 0 && axisY <= h) { ctx.moveTo(0, axisY); ctx.lineTo(w, axisY); ctx.stroke(); }
+            if (axisX >= 0 && axisX <= w) { ctx.moveTo(axisX, 0); ctx.lineTo(axisX, h); ctx.stroke(); }
+            ctx.fillStyle = "#1e293b";
+            if (axisY >= 0 && axisY <= h && xMax > 0) {
+                const { x: arrowX } = worldToCanvas(xMax - 0.15, 0);
+                if (arrowX <= w) {
+                    ctx.beginPath(); ctx.moveTo(arrowX, axisY-4); ctx.lineTo(arrowX+6, axisY); ctx.lineTo(arrowX, axisY+4); ctx.fill();
+                }
+            }
+            if (axisX >= 0 && axisX <= w && yMax > 0) {
+                const { y: arrowY } = worldToCanvas(0, yMax - 0.3);
+                if (arrowY >= 0) {
+                    ctx.beginPath(); ctx.moveTo(axisX-4, arrowY); ctx.lineTo(axisX, arrowY-6); ctx.lineTo(axisX+4, arrowY); ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawCurveAndPoints() {
+            ctx.beginPath(); ctx.lineWidth = 2.8; ctx.strokeStyle = "#d32f2f";
+            let first = true;
+            const samples = Math.max(250, Math.floor((xMax - xMin) / (xMax - xMin) * 500));
+            for (let i = 0; i <= samples; i++) {
+                const x = xMin + (i / samples) * (xMax - xMin);
+                if (x < 0) { first = true; continue; }
+                const y = f(x);
+                if (isNaN(y)) { first = true; continue; }
+                const { x: sx, y: sy } = worldToCanvas(x, y);
+                if (sy < -100 || sy > canvas.height + 100) { first = true; continue; }
+                if (first) { ctx.moveTo(sx, sy); first = false; }
+                else ctx.lineTo(sx, sy);
+            }
+            ctx.stroke();
+            for (let ix = 0; ix <= 7; ix++) {
+                const yVal = f(ix);
+                if (!isNaN(yVal) && ix >= xMin && ix <= xMax && yVal >= yMin && yVal <= yMax) {
+                    const { x: sx, y: sy } = worldToCanvas(ix, yVal);
+                    ctx.beginPath(); ctx.fillStyle = "#b91c1c"; ctx.arc(sx, sy, 3, 0, 2*Math.PI); ctx.fill();
+                    ctx.fillStyle = "#ffffff"; ctx.arc(sx, sy, 1.5, 0, 2*Math.PI); ctx.fill();
+                }
+            }
+            ctx.font = "italic 12px 'Arial'";
+            ctx.fillStyle = "#b91c1c";
+            const { x: lx, y: ly } = worldToCanvas(2.2, f(2.2)+0.35);
+            if (lx < canvas.width-20 && ly > 20) ctx.fillText("f(x) = e^{sin x}", lx, ly);
+        }
+
+        function draw() {
+            if (!ctx) return;
+            const w = canvas.width, h = canvas.height;
+            if (w === 0 || h === 0) return;
+            ctx.clearRect(0, 0, w, h);
+            drawGridAndAxes();
+            drawShadedArea();
+            drawRiemannRectangles();
+            drawCurveAndPoints();
+            ctx.save(); ctx.setLineDash([4,6]); ctx.lineWidth = 1; ctx.strokeStyle = "#2c5e66";
+            if (0 >= xMin && 0 <= xMax) {
+                const { x: lineX } = worldToCanvas(0, 0);
+                ctx.beginPath(); ctx.moveTo(lineX, 0); ctx.lineTo(lineX, h); ctx.stroke();
+            }
+            if (4 >= xMin && 4 <= xMax) {
+                const { x: lineX } = worldToCanvas(4, 0);
+                ctx.beginPath(); ctx.moveTo(lineX, 0); ctx.lineTo(lineX, h); ctx.stroke();
+            }
+            ctx.setLineDash([]); ctx.restore();
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const maxWidth = Math.min(1000, container.clientWidth - 20);
+            const newWidth = maxWidth;
+            const newHeight = newWidth * (500/800);
+            canvas.style.width = `${newWidth}px`;
+            canvas.style.height = `${newHeight}px`;
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            draw();
+        }
+
+        // interaction
+        let isDragging = false;
+        let dragStartX = 0, dragStartY = 0;
+        let dragStartXMin = 0, dragStartYMin = 0;
+        function handleMouseDown(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
+            let cx = e.clientX, cy = e.clientY;
+            if (e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+            const canvasX = (cx - rect.left) * scaleX;
+            const canvasY = (cy - rect.top) * scaleY;
+            dragStartX = canvasX; dragStartY = canvasY;
+            dragStartXMin = xMin; dragStartYMin = yMin;
+            isDragging = true;
+            canvas.style.cursor = "grabbing";
+        }
+        function handleMouseMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
+            let cx = e.clientX, cy = e.clientY;
+            if (e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+            const canvasX = (cx - rect.left) * scaleX;
+            const canvasY = (cy - rect.top) * scaleY;
+            const dxWorld = ((canvasX - dragStartX) / canvas.width) * (xMax - xMin);
+            const dyWorld = -((canvasY - dragStartY) / canvas.height) * (yMax - yMin);
+            let newXMin = dragStartXMin - dxWorld;
+            let newXMax = newXMin + (xMax - xMin);
+            let newYMin = dragStartYMin - dyWorld;
+            let newYMax = newYMin + (yMax - yMin);
+            if (newXMin < WORLD_X_MIN) { newXMin = WORLD_X_MIN; newXMax = newXMin + (xMax - xMin); }
+            if (newXMax > WORLD_X_MAX) { newXMax = WORLD_X_MAX; newXMin = newXMax - (xMax - xMin); }
+            if (newYMin < WORLD_Y_MIN) { newYMin = WORLD_Y_MIN; newYMax = newYMin + (yMax - yMin); }
+            if (newYMax > WORLD_Y_MAX) { newYMax = WORLD_Y_MAX; newYMin = newYMax - (yMax - yMin); }
+            xMin = newXMin; xMax = newXMax; yMin = newYMin; yMax = newYMax;
+            draw();
+        }
+        function handleMouseUp() { isDragging = false; canvas.style.cursor = "grab"; }
+        function handleWheel(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
+            const canvasX = (e.clientX - rect.left) * scaleX;
+            const canvasY = (e.clientY - rect.top) * scaleY;
+            let cx, cy;
+            if (canvasX >= 0 && canvasX <= canvas.width && canvasY >= 0 && canvasY <= canvas.height) {
+                const wc = canvasToWorld(canvasX, canvasY);
+                cx = wc.x; cy = wc.y;
+            } else { cx = (xMin + xMax)/2; cy = (yMin + yMax)/2; }
+            const factor = e.deltaY > 0 ? 0.9 : 1.1;
+            let newXMin = cx - (cx - xMin) / factor;
+            let newXMax = newXMin + (xMax - xMin) / factor;
+            let newYMin = cy - (cy - yMin) / factor;
+            let newYMax = newYMin + (yMax - yMin) / factor;
+            if (newXMin < WORLD_X_MIN) { newXMin = WORLD_X_MIN; newXMax = newXMin + (xMax - xMin)/factor; }
+            if (newXMax > WORLD_X_MAX) { newXMax = WORLD_X_MAX; newXMin = newXMax - (xMax - xMin)/factor; }
+            if (newYMin < WORLD_Y_MIN) { newYMin = WORLD_Y_MIN; newYMax = newYMin + (yMax - yMin)/factor; }
+            if (newYMax > WORLD_Y_MAX) { newYMax = WORLD_Y_MAX; newYMin = newYMax - (yMax - yMin)/factor; }
+            if (newXMax - newXMin > 0.01 && newYMax - newYMin > 0.01) {
+                xMin = newXMin; xMax = newXMax; yMin = newYMin; yMax = newYMax;
+                draw();
+            }
+        }
+        function resetView() {
+            xMin = 0; xMax = 5.2; yMin = -1.2; yMax = 4.5;
+            clampViewToWorld();
+            draw();
+        }
+
+        function initInteractivity() {
+            canvas.addEventListener('mousedown', handleMouseDown);
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('wheel', handleWheel, { passive: false });
+            canvas.addEventListener('touchstart', handleMouseDown, { passive: false });
+            window.addEventListener('touchmove', handleMouseMove, { passive: false });
+            window.addEventListener('touchend', handleMouseUp);
+            canvas.style.cursor = "grab";
+            document.getElementById('resetViewBtn').addEventListener('click', resetView);
+            window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+            resizeCanvas();
+            draw();
+        }
+
+
+
+        updateRiemannTextBox();
+        initInteractivity();
+    })();
+
+    // Navigation logic (arithmetic filenames)
+    let currentSlideNumber = null;
+    function getCurrentSlideNumber() {
+        const path = window.location.pathname;
+        const filename = path.substring(path.lastIndexOf('/') + 1);
+        const match = filename.match(/^(\d+)\.html$/);
+        return match ? parseInt(match[1], 10) : null;
+    }
+    function navigateToSlide(targetNumber) {
+        if (targetNumber < 1) return;
+        window.location.href = `${targetNumber}.html`;
+    }
+    function handlePrevious() { if (currentSlideNumber) navigateToSlide(currentSlideNumber - 1); }
+    function handleNext() { if (currentSlideNumber) navigateToSlide(currentSlideNumber + 1); }
+    const prevButton = document.getElementById("prevButton");
+    const nextButton = document.getElementById("nextButton");
+    function initNavigation() {
+        currentSlideNumber = getCurrentSlideNumber();
+        if (prevButton) prevButton.addEventListener("click", handlePrevious);
+        if (nextButton) nextButton.addEventListener("click", handleNext);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initNavigation);
+    else initNavigation();
+</script>
+</body>
+</html>

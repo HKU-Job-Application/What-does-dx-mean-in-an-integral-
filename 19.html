@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Double integrals · Polar coordinates · Area measures & integral estimates</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']]
+  }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #f8faff 0%, #f0f3fd 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .presentation-content {
+            flex: 1;
+            min-height: calc(100vh - 80px);
+            padding: 2rem 2rem 80px 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .content-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            padding: 2rem 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        .text-block {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            font-weight: 500;
+            color: #1a2c3e;
+            margin-bottom: 1.5rem;
+        }
+        /* Two‑column layout for graphs + infobox */
+        .graphs-below {
+            margin-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            align-items: center;   /* vertical centering */
+        }
+        .left-stack {
+            flex: 1.4;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .right-stack {
+            flex: 0.65;
+            min-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .graph-panel {
+            background: #ffffffdd;
+            border-radius: 28px;
+            padding: 0.7rem 0.9rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.1s ease;
+        }
+        .func-heading {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            background: #f0f4fe;
+            padding: 5px 0;
+            border-radius: 40px;
+            letter-spacing: 0.2px;
+            color: #1e4660;
+        }
+        .info-box {
+            background: #fefaf5;
+            border-radius: 24px;
+            padding: 1.2rem 1rem;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            font-family: 'Menlo', 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+        .info-box h3 {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #1e4660;
+            text-align: center;
+            font-family: 'Arial', sans-serif;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed #cbd5e1;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #2c3e66;
+        }
+        .info-value {
+            font-weight: 500;
+            color: #0f2b3d;
+            text-align: right;
+        }
+        .info-sub {
+            font-size: 0.8rem;
+            color: #4a627a;
+            margin-top: 12px;
+            font-style: italic;
+            text-align: center;
+        }
+        .grid-canvas-container {
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            margin-top: 6px;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            cursor: pointer;
+        }
+        #polarCanvas {
+            aspect-ratio: 1 / 1;
+            background: #fef9ef;
+        }
+        #rtCanvas {
+            aspect-ratio: 600 / 420;
+            background: #fefaf0;
+        }
+        .slider-area {
+            background: #f1f5f9;
+            border-radius: 48px;
+            padding: 0.4rem 1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .slider-label {
+            font-weight: 600;
+            color: #1e4660;
+            font-size: 0.95rem;
+        }
+        input[type="range"] {
+            flex: 2;
+            min-width: 140px;
+            height: 5px;
+            border-radius: 10px;
+            background: #cbd5e1;
+        }
+        .n-value {
+            background: #2c3e66;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 32px;
+            font-size: 0.85rem;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        .fig-caption {
+            font-size: 0.72rem;
+            color: #4a627a;
+            margin-top: 0.5rem;
+            text-align: center;
+            font-style: italic;
+        }
+        @media (max-width: 800px) {
+            .presentation-content { padding: 1rem 1rem 80px 1rem; }
+            .content-card { padding: 1.2rem; }
+            .text-block { font-size: 1rem; }
+            .right-stack { flex: 0.8; min-width: 280px; }
+            .left-stack { flex: 1; min-width: 260px; }
+        }
+        .nav-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .nav-btn {
+            width: 140px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-prev { background-color: #d32f2f; }
+        .btn-prev:hover { background-color: #b71c1c; }
+        .btn-next { background-color: #2e7d32; }
+        .btn-next:hover { background-color: #1b5e20; }
+        @media (max-width: 600px) {
+            .nav-btn { width: 120px; height: 48px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="presentation-content">
+    <div class="content-card">
+        <!-- exact starting text as requested -->
+        <div class="text-block">
+            The "proper" way of finding the volume under the surface of $f(x,y)$ over $C$ is to take each little sub-shape in $C$ based on our division, gets its actual area, multiply it by some value of $f(x,y)$ on that little shape, see that this estimates the size of a very thin part of the volume, and add up all those across all the sub-shapes that make up our division. Then, we get better estimates by making the divisions finer, the sub-shapes smaller.
+        </div>
+        <div class="text-block">
+            Just as in previous examples, we can ask: What if we created a weird rule for estimating the integral? The new rule is that instead of taking the actual value of the area of that little piece of ring in $C$, we pretended that the sub-shape had an area equal to the sub-rectangle in our pretend $r\theta$ graph. I remind you that the $r\theta$ graph doesn't actually show the points of $C$.
+        </div>
+        <div class="text-block">
+            As I said earlier, you could make up such a rule. Mathematically it works, and it's called having a different measure for the sizes of sets in $C$. This rule integrates $f(x,y)$ with respect to $\text{d}r\,\text{d}\theta$, a measure different from $\text{d}x\,\text{d}y$. But the areas that come out of the new measure are not the correct ones for evaluating the original integral. I've attached the $C$ and $r\theta$ graphs again - you can click or hover on any sub-shape/sub-rectangle, and an infobox shows you how different the areas are. Because the areas are not right, the estimate for the whole integral isn't right either. The infobox will also tell you so.
+        </div>
+
+        <!-- Two‑column: left infobox, right stacked graphs (rθ + polar) -->
+        <div class="graphs-below">
+            <!-- LEFT COLUMN: info panel (replaces 3D surface) -->
+            <div class="left-stack">
+                <div class="graph-panel">
+                    <div class="func-heading">📊 C vs. rθ cell info & integral estimates</div>
+                    <div id="infoBox" class="info-box">
+                        <h3>📌 Cell information</h3>
+                        <div id="cellAreaDetails">
+                            <div class="info-row"><span class="info-label">Pretend rθ rectangle area:</span><span class="info-value" id="rectAreaVal">—</span></div>
+                            <div class="info-row"><span class="info-label">Actual area in C:</span><span class="info-value" id="polarAreaVal">—</span></div>
+                        </div>
+                        <div style="margin: 12px 0; border-top: 1px solid #ddd;"></div>
+                        <div id="globalEstimates">
+                            <div class="info-row"><span class="info-label">🌐 Weird (dr dθ) estimate of the integral:</span><span class="info-value" id="weirdEstimate">—</span></div>
+                            <div class="info-row"><span class="info-label">✅ Actual (dx dy) estimate of the integral:</span><span class="info-value" id="actualEstimate">—</span></div>
+                            <div class="info-row"><span class="info-label">🔢 Current n =</span><span class="info-value" id="currentNdisplay">—</span></div>
+                        </div>
+                        <div class="info-sub" id="selectionHint">🖱️ Hover or click any cell on the right → area details appear here</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: two graphs stacked (rθ plane + polar grid) -->
+            <div class="right-stack">
+                <!-- Panel 2: rθ parameter space -->
+                <div class="graph-panel">
+                    <div class="func-heading">\(r\theta\)-plane: parameters \((r,\theta)\) &nbsp; \(r\in[0,\sqrt{2}],\; \theta\in[0,2\pi)\)</div>
+                    <div class="grid-canvas-container">
+                        <canvas id="rtCanvas" width="600" height="420" style="width:100%; height:auto; aspect-ratio:600/420; background:#fefaf0;"></canvas>
+                    </div>
+                    <div class="fig-caption">
+                        🟨 Hover/click → highlights matching polar cell & shows areas in infobox
+                    </div>
+                </div>
+
+                <!-- Panel 3: polar grid (annular sectors) -->
+                <div class="graph-panel">
+                    <div class="func-heading">\( C = \{(x,y): x^{2}+y^{2} \le 2\} \) &nbsp; polar cells</div>
+                    <div class="slider-area">
+                        <span class="slider-label">🌀 n = </span>
+                        <input type="range" id="nSlider" min="5" max="25" step="5" value="5">
+                        <span id="nValueLabel" class="n-value">5</span>
+                    </div>
+                    <div class="grid-canvas-container">
+                        <canvas id="polarCanvas" width="600" height="600" style="width:100%; height:auto; aspect-ratio:1/1; background:#fef9ef;"></canvas>
+                    </div>
+                    <div class="fig-caption">
+                        🟠 Hover/click → highlights matching \(r\theta\) rectangle & shows cell areas in infobox<br>
+                        📐 Solid axes: \(x\) (right) and \(y\) (up)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="nav-controls">
+    <button id="prevButton" class="nav-btn btn-prev">← Previous</button>
+    <button id="nextButton" class="nav-btn btn-next">Next →</button>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    //  Global variables and precomputed chart estimates (n = 5,10,15,20,25)
+    // --------------------------------------------------------------
+    const DISC_RADIUS = Math.sqrt(2);
+    let currentN = 5;
+    let polarCells = [];          // array of cell objects
+    let hoverCellIdx = null;
+    let lockedCellIdx = null;
+
+    // Canvas references
+    const rtCanvas = document.getElementById('rtCanvas');
+    const rtCtx = rtCanvas.getContext('2d');
+    const polarCanvas = document.getElementById('polarCanvas');
+    const polarCtx = polarCanvas.getContext('2d');
+
+    // Precomputed integral estimates from the chart (Sum1 = weird dr dθ, Sum2 = actual dx dy)
+    const integralChart = {
+        5:  { weird: 4.5307, actual: 2.1864 },
+        10: { weird: 4.9268, actual: 2.4383 },
+        15: { weird: 5.0571, actual: 2.5282 },
+        20: { weird: 5.1219, actual: 2.5742 },
+        25: { weird: 5.1607, actual: 2.6021 }
+    };
+
+    // Helper: get estimate for given n (n guaranteed to be 5,10,15,20,25)
+    function getWeirdEstimate(n) { return integralChart[n]?.weird ?? 4.5307; }
+    function getActualEstimate(n) { return integralChart[n]?.actual ?? 2.1864; }
+
+    // Build polar cells (annular sectors) for current n
+    function buildPolarCells(n) {
+        const cells = [];
+        const dr = DISC_RADIUS / n;
+        const dtheta = 2 * Math.PI / n;
+        for (let i = 0; i < n; i++) {
+            const r0 = i * dr;
+            const r1 = (i + 1) * dr;
+            const maxRadius = r1;   // used for any future height, not needed now
+            for (let j = 0; j < n; j++) {
+                cells.push({
+                    idx: cells.length,
+                    i, j,
+                    r0, r1,
+                    theta0: j * dtheta,
+                    theta1: (j + 1) * dtheta,
+                    maxRadius,
+                    areaActual: 0.5 * (r1 * r1 - r0 * r0) * dtheta,
+                    rectArea: dr * dtheta   // area in rθ parameter space
+                });
+            }
+        }
+        return cells;
+    }
+
+    // --------------------------------------------------------------
+    // Drawing functions: rθ grid and polar grid (highlighting & selection)
+    // --------------------------------------------------------------
+    let rtWidth, rtHeight;
+
+    function drawRTGrid() {
+        if (!rtCanvas) return;
+        const w = rtCanvas.clientWidth, h = rtCanvas.clientHeight;
+        if (w === 0 || h === 0) return;
+        rtCanvas.width = w; rtCanvas.height = h;
+        rtWidth = w; rtHeight = h;
+        const margin = { left: 48, right: 28, top: 28, bottom: 38 };
+        const plotW = w - margin.left - margin.right;
+        const plotH = h - margin.top - margin.bottom;
+        rtCtx.clearRect(0, 0, w, h);
+        rtCtx.fillStyle = "#fefaf0";
+        rtCtx.fillRect(0, 0, w, h);
+        const rMax = DISC_RADIUS, thetaMax = 2 * Math.PI;
+        function rToX(r) { return margin.left + (r / rMax) * plotW; }
+        function thetaToY(theta) { return margin.top + plotH - (theta / thetaMax) * plotH; }
+
+        // Draw grid lines
+        rtCtx.beginPath();
+        rtCtx.strokeStyle = "#aaa";
+        rtCtx.lineWidth = 0.5;
+        for (let i = 0; i <= currentN; i++) {
+            const x = rToX(i * DISC_RADIUS / currentN);
+            rtCtx.moveTo(x, margin.top); rtCtx.lineTo(x, margin.top + plotH);
+            const y = thetaToY(i * 2 * Math.PI / currentN);
+            rtCtx.moveTo(margin.left, y); rtCtx.lineTo(margin.left + plotW, y);
+        }
+        rtCtx.stroke();
+
+        const drCell = DISC_RADIUS / currentN;
+        const dthetaCell = 2 * Math.PI / currentN;
+        const activeIdx = (lockedCellIdx !== null) ? lockedCellIdx : hoverCellIdx;
+
+        // Highlight active rectangle
+        for (let i = 0; i < currentN; i++) {
+            for (let j = 0; j < currentN; j++) {
+                const idx = i * currentN + j;
+                if (activeIdx === idx) {
+                    const x0 = rToX(i * drCell);
+                    const x1 = rToX((i + 1) * drCell);
+                    const y0 = thetaToY((j + 1) * dthetaCell);
+                    const y1 = thetaToY(j * dthetaCell);
+                    rtCtx.fillStyle = (lockedCellIdx === idx) ? "rgba(220,38,38,0.55)" : "rgba(245,158,11,0.48)";
+                    rtCtx.fillRect(x0, y0, x1 - x0, y1 - y0);
+                    rtCtx.strokeStyle = "#b91c1c";
+                    rtCtx.lineWidth = 1.8;
+                    rtCtx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+                }
+            }
+        }
+
+        // Axes and labels
+        rtCtx.beginPath();
+        rtCtx.moveTo(margin.left, margin.top); rtCtx.lineTo(margin.left + plotW, margin.top);
+        rtCtx.lineTo(margin.left + plotW, margin.top + plotH); rtCtx.lineTo(margin.left, margin.top + plotH);
+        rtCtx.closePath();
+        rtCtx.strokeStyle = "#2c5282";
+        rtCtx.lineWidth = 1.8;
+        rtCtx.stroke();
+        rtCtx.fillStyle = "#1e4660";
+        rtCtx.font = "bold 11px 'Arial'";
+        rtCtx.fillText("r", margin.left + plotW - 12, margin.top + plotH - 6);
+        rtCtx.save();
+        rtCtx.translate(margin.left - 18, margin.top + plotH / 2);
+        rtCtx.rotate(-Math.PI / 2);
+        rtCtx.fillText("θ", -8, 0);
+        rtCtx.restore();
+        rtCtx.fillText("0", margin.left - 10, margin.top + plotH + 5);
+        rtCtx.fillText(String(DISC_RADIUS.toFixed(2)), rToX(DISC_RADIUS) - 15, margin.top + plotH + 5);
+        rtCtx.fillText("0", margin.left - 18, thetaToY(0) + 4);
+        rtCtx.fillText("2π", margin.left - 26, thetaToY(2 * Math.PI) - 4);
+    }
+
+    function drawPolarGrid() {
+        const size = polarCanvas.clientWidth;
+        if (size === 0) return;
+        polarCanvas.width = size; polarCanvas.height = size;
+        const ctx = polarCtx;
+        const center = { x: size / 2, y: size / 2 };
+        const radiusPx = size * 0.42;
+        const worldExtent = DISC_RADIUS * 1.35;
+        const scale = radiusPx / worldExtent;
+        function worldToCanvas(xw, yw) { return { x: center.x + xw * scale, y: center.y - yw * scale }; }
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.fillStyle = "#fef9ef";
+        ctx.fillRect(0, 0, size, size);
+
+        // Draw axes
+        const xAxisLeft = worldToCanvas(-worldExtent, 0);
+        const xAxisRight = worldToCanvas(worldExtent, 0);
+        const yAxisBottom = worldToCanvas(0, -worldExtent);
+        const yAxisTop = worldToCanvas(0, worldExtent);
+        ctx.beginPath();
+        ctx.moveTo(xAxisLeft.x, xAxisLeft.y); ctx.lineTo(xAxisRight.x, xAxisRight.y);
+        ctx.moveTo(yAxisBottom.x, yAxisBottom.y); ctx.lineTo(yAxisTop.x, yAxisTop.y);
+        ctx.strokeStyle = "#2c5282";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = "#1e4660";
+        ctx.font = "bold 13px 'Arial'";
+        ctx.fillText("x", xAxisRight.x - 12, xAxisRight.y - 6);
+        ctx.fillText("y", yAxisTop.x + 8, yAxisTop.y + 4);
+
+        // Ticks
+        for (let val = -2; val <= 2; val++) {
+            if (Math.abs(val) < 0.1) continue;
+            const xTick = worldToCanvas(val, 0);
+            ctx.beginPath();
+            ctx.moveTo(xTick.x, xTick.y - 4); ctx.lineTo(xTick.x, xTick.y + 4);
+            ctx.strokeStyle = "#5a6e8a"; ctx.lineWidth = 1; ctx.stroke();
+            const yTick = worldToCanvas(0, val);
+            ctx.beginPath();
+            ctx.moveTo(yTick.x - 4, yTick.y); ctx.lineTo(yTick.x + 4, yTick.y);
+            ctx.stroke();
+        }
+
+        const discCenter = worldToCanvas(0, 0);
+        const discRadiusPx = (DISC_RADIUS / worldExtent) * radiusPx;
+        ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, discRadiusPx, 0, 2 * Math.PI);
+        ctx.fillStyle = "rgba(100,149,237,0.12)"; ctx.fill();
+        ctx.strokeStyle = "#2c5282"; ctx.lineWidth = 2.2; ctx.stroke();
+
+        const dtheta = 2 * Math.PI / currentN;
+        const dr = DISC_RADIUS / currentN;
+        // radial lines
+        for (let j = 0; j <= currentN; j++) {
+            const theta = j * dtheta;
+            const p2 = worldToCanvas(DISC_RADIUS * Math.cos(theta), DISC_RADIUS * Math.sin(theta));
+            ctx.beginPath(); ctx.moveTo(discCenter.x, discCenter.y); ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = "#9aaec0"; ctx.stroke();
+        }
+        // circles
+        for (let i = 1; i <= currentN; i++) {
+            const rpx = (i * dr / worldExtent) * radiusPx;
+            ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, rpx, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+
+        const activeIdx = (lockedCellIdx !== null) ? lockedCellIdx : hoverCellIdx;
+        if (activeIdx !== null && polarCells[activeIdx]) {
+            const cell = polarCells[activeIdx];
+            const r0px = (cell.r0 / worldExtent) * radiusPx;
+            const r1px = (cell.r1 / worldExtent) * radiusPx;
+            const theta0 = cell.theta0, theta1 = cell.theta1;
+            const steps = 40;
+            ctx.beginPath();
+            for (let k = 0; k <= steps; k++) {
+                const theta = theta0 + (theta1 - theta0) * k / steps;
+                const x = discCenter.x + r1px * Math.cos(theta);
+                const y = discCenter.y - r1px * Math.sin(theta);
+                if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            for (let k = steps; k >= 0; k--) {
+                const theta = theta0 + (theta1 - theta0) * k / steps;
+                const x = discCenter.x + r0px * Math.cos(theta);
+                const y = discCenter.y - r0px * Math.sin(theta);
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = (lockedCellIdx === activeIdx) ? "rgba(220,38,38,0.55)" : "rgba(245,158,11,0.48)";
+            ctx.fill();
+            ctx.strokeStyle = "#b91c1c"; ctx.lineWidth = 2.4; ctx.stroke();
+        }
+
+        ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, discRadiusPx, 0, 2 * Math.PI);
+        ctx.strokeStyle = "#1e4a76"; ctx.lineWidth = 2.4; ctx.stroke();
+    }
+
+    // Update infobox based on current selection and n
+    function updateInfoBox() {
+        const selectedIdx = (lockedCellIdx !== null) ? lockedCellIdx : hoverCellIdx;
+        const weirdEst = getWeirdEstimate(currentN);
+        const actualEst = getActualEstimate(currentN);
+        document.getElementById('weirdEstimate').innerText = weirdEst.toFixed(4);
+        document.getElementById('actualEstimate').innerText = actualEst.toFixed(4);
+        document.getElementById('currentNdisplay').innerText = currentN;
+
+        if (selectedIdx !== null && polarCells[selectedIdx]) {
+            const cell = polarCells[selectedIdx];
+            document.getElementById('rectAreaVal').innerHTML = cell.rectArea.toFixed(4);
+            document.getElementById('polarAreaVal').innerHTML = cell.areaActual.toFixed(4);
+            document.getElementById('selectionHint').innerHTML = `🔍 Selected cell (i=${cell.i}, j=${cell.j}) · areas above`;
+        } else {
+            document.getElementById('rectAreaVal').innerHTML = '—';
+            document.getElementById('polarAreaVal').innerHTML = '—';
+            document.getElementById('selectionHint').innerHTML = '🖱️ Hover or click any cell on the right → area details appear here';
+        }
+    }
+
+    // Full refresh: redraw both canvases and update infobox
+    function refreshAll() {
+        drawRTGrid();
+        drawPolarGrid();
+        updateInfoBox();
+    }
+
+    // --------------------------------------------------------------
+    // Interaction helpers: map canvas coordinates to cell index
+    // --------------------------------------------------------------
+    function findCellIndexFromXY(xw, yw) {
+        const r = Math.hypot(xw, yw);
+        if (r > DISC_RADIUS + 1e-6) return null;
+        let theta = Math.atan2(yw, xw);
+        if (theta < 0) theta += 2 * Math.PI;
+        const dr = DISC_RADIUS / currentN;
+        const dtheta = 2 * Math.PI / currentN;
+        const i = Math.floor(r / dr);
+        const j = Math.floor(theta / dtheta);
+        if (i < 0 || i >= currentN || j < 0 || j >= currentN) return null;
+        return i * currentN + j;
+    }
+
+    function findCellIndexFromRT(canvasX, canvasY) {
+        const w = rtCanvas.width, h = rtCanvas.height;
+        if (w === 0 || h === 0) return null;
+        const margin = { left: 48, right: 28, top: 28, bottom: 38 };
+        const plotW = w - margin.left - margin.right;
+        const plotH = h - margin.top - margin.bottom;
+        if (canvasX < margin.left || canvasX > margin.left + plotW || canvasY < margin.top || canvasY > margin.top + plotH) return null;
+        const rFrac = (canvasX - margin.left) / plotW;
+        const thetaFrac = (canvasY - margin.top) / plotH;
+        const r = rFrac * DISC_RADIUS;
+        const theta = (1 - thetaFrac) * 2 * Math.PI;
+        const dr = DISC_RADIUS / currentN;
+        const dtheta = 2 * Math.PI / currentN;
+        const i = Math.floor(r / dr);
+        const j = Math.floor(theta / dtheta);
+        if (i < 0 || i >= currentN || j < 0 || j >= currentN) return null;
+        return i * currentN + j;
+    }
+
+    // Attach hover/click events to both canvases
+    function attachCanvasEvents(canvas, isRT) {
+        const getIdx = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let cx, cy;
+            if (e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+            else { cx = e.clientX; cy = e.clientY; }
+            const canvasX = (cx - rect.left) * scaleX;
+            const canvasY = (cy - rect.top) * scaleY;
+            if (isRT) return findCellIndexFromRT(canvasX, canvasY);
+            else {
+                const sz = polarCanvas.width;
+                const center = sz / 2;
+                const radiusPx = sz * 0.42;
+                const worldExtent = DISC_RADIUS * 1.35;
+                const scaleF = radiusPx / worldExtent;
+                const dx = (canvasX - center) / scaleF;
+                const dy = (center - canvasY) / scaleF;
+                return findCellIndexFromXY(dx, dy);
+            }
+        };
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (lockedCellIdx !== null) return;
+            const idx = getIdx(e);
+            if (idx !== hoverCellIdx) {
+                hoverCellIdx = idx;
+                refreshAll();
+            }
+        });
+        canvas.addEventListener('click', (e) => {
+            const idx = getIdx(e);
+            if (idx !== null) {
+                lockedCellIdx = idx;
+                hoverCellIdx = null;
+                refreshAll();
+            } else {
+                lockedCellIdx = null;
+                hoverCellIdx = null;
+                refreshAll();
+            }
+        });
+        canvas.addEventListener('mouseleave', () => {
+            if (lockedCellIdx === null && hoverCellIdx !== null) {
+                hoverCellIdx = null;
+                refreshAll();
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (lockedCellIdx === null) { const idx = getIdx(e); if (idx !== hoverCellIdx) { hoverCellIdx = idx; refreshAll(); } } });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); const idx = getIdx(e); if (idx !== null) { lockedCellIdx = idx; hoverCellIdx = null; refreshAll(); } else { lockedCellIdx = null; hoverCellIdx = null; refreshAll(); } });
+    }
+
+    // --------------------------------------------------------------
+    // Slider, resize, navigation and initialization
+    // --------------------------------------------------------------
+    const nSlider = document.getElementById('nSlider');
+    const nValueLabel = document.getElementById('nValueLabel');
+
+    function rebuildFromSlider() {
+        currentN = parseInt(nSlider.value);
+        nValueLabel.innerText = currentN;
+        polarCells = buildPolarCells(currentN);
+        lockedCellIdx = null;
+        hoverCellIdx = null;
+        refreshAll();
+    }
+
+    nSlider.addEventListener('input', (e) => {
+        currentN = parseInt(e.target.value);
+        nSlider.value = currentN;
+        rebuildFromSlider();
+    });
+
+    window.addEventListener('resize', () => {
+        refreshAll();
+    });
+
+    // Navigation buttons (arithmetic based on filename)
+    function getCurrentNumber() {
+        const path = window.location.pathname;
+        const match = path.match(/(\d+)\.html$/);
+        if (match) return parseInt(match[1], 10);
+        return 19; // fallback
+    }
+    document.getElementById('prevButton').addEventListener('click', () => {
+        const cur = getCurrentNumber();
+        window.location.href = (cur - 1) + '.html';
+    });
+    document.getElementById('nextButton').addEventListener('click', () => {
+        const cur = getCurrentNumber();
+        window.location.href = (cur + 1) + '.html';
+    });
+    // Initialization
+    function init() {
+        polarCells = buildPolarCells(currentN);
+        attachCanvasEvents(rtCanvas, true);
+        attachCanvasEvents(polarCanvas, false);
+        rebuildFromSlider(); // draws everything + infobox
+    }
+
+    init();s
+</script>
+</body>
+</html>
