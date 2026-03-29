@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Multivariable Calculus · Measures & Differentials</title>
+    <title>Multivariable Calculus · Substitution Insight</title>
     <!-- MathJax 3 for LaTeX rendering -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     <style>
@@ -44,15 +44,15 @@
             border: 1px solid rgba(255,255,255,0.5);
         }
 
-        /* Font size reduced by 45% relative to original 1.6rem → 0.88rem */
-.line {
-    font-size: 1.1rem;       /* 25% bigger than previous 0.88rem (0.88 * 1.25 = 1.1) */
-    line-height: 1.55;
-    margin-bottom: 1.2rem;
-    font-weight: 500;
-    color: #1a2c3e;
-    letter-spacing: -0.01em;
-}
+        /* Font size increased by ~20% relative to 10.html (1.1rem → 1.32rem) */
+        .line {
+            font-size: 1.32rem;
+            line-height: 1.55;
+            margin-bottom: 1.2rem;
+            font-weight: 500;
+            color: #1a2c3e;
+            letter-spacing: -0.01em;
+        }
 
         .line:last-child {
             margin-bottom: 0;
@@ -127,10 +127,10 @@
             .presentation-content {
                 padding: 1.5rem 1.2rem 80px 1.2rem;
             }
-.line {
-    font-size: 1.0rem;    /* 25% bigger than 0.8rem, maintaining proportion */
-    line-height: 1.5;
-}
+            .line {
+                font-size: 1.1rem;   /* proportionally comfortable on small screens */
+                line-height: 1.5;
+            }
             .content-card {
                 padding: 1.5rem;
             }
@@ -159,25 +159,13 @@
 <div class="presentation-content">
     <div class="content-card">
         <div class="line">
-            The second point is this: \(\text{d}u\) is an alternative, "weird" way of measuring the size of sets inside \[0,4]\, which in turns gives us a "weird" way to measure the area under any continuous function \(f(x)\) on \(x\in[0,4]\). How so?
+            Let's very quickly go over one more example of the same, and apply the same visual logic. If you're confident, you can move ahead to the multi-variable calculus section. If you feel like coming back here, just press the Previous button until you hit slide 9.
         </div>
         <div class="line">
-            The normal way to measure the area is to draw the rectangles on the graph of \(f(x)\), take their bases, take their heights i.e. the values of \(f(x)\) at those division points, multiply each pair, and then add it all up. Then, use narrower and narrower divisions.
+            Let's think about \(\displaystyle\int_1^\sqrt{3} \dfrac{1}{1+x^2}\,\text{d}x\).
         </div>
         <div class="line">
-            But you can imagine someone coming up with a new rule, where they say, "No! I don't want you measuring the area this way! I want you measuring the area in this other way, where every time you see a rectangle with \(x\)-axis base \([c,c']\), you pretend that the base is of length \((\sqrt{c'}-\sqrt{c})\), because that's what the new size or length of that interval is going to be. Only then, do you multiply, add, take narrower etc."
-        </div>
-        <div class="line">
-            Note that we're not messing up the function \(f(x)\) itself or the positions \(x_i\) that are mapped to \(f(x_i)\). Not at all. We're messing up how big or long a set inside the \(x\)-axis is considered to be, because the bases of the rectangles are sets inside the \(x\)-axis.
-        </div>
-        <div class="line">
-            Mathematically, this new rule can be applied for every continuous function \(f(x)\) on the interval \(x\in[0,4]\). It will give you a unique limit. As we discussed, the limit is \(\displaystyle\int_{u=0}^{u=2} f(u^2)\,\text{d}u\). But we can also regard this as \(\displaystyle\int_{x=0}^{x=4} f(x)\,\text{d}u\).
-        </div>
-        <div class="line">
-            In other words, \(\text{d}u\) is really a <strong>measure</strong> on \([0,4]\) which is different from \(\text{d}x\). We can integrate any continuous function on \([0,4]\) with respect to these different ways of measuring sets inside \([0,4]\), and we can get different answers.
-        </div>
-        <div class="line">
-            There's a whole branch of measure theory, defining what a measure is and how measures work over sets. You might even take this course in later years.
+            I know your instinct is to jump to, "OK I know that the trick is to let \(x=\tan(\theta)\), and then as long as we identify what \(\text{d}x\) is, algebraically everything will work out." And that's true. But, just for this one example, shall we think through very carefully what exactly it means geometrically to do the substitution \(x=\tan(\theta)\)? How exactly is this expressed in terms of integral approximations?
         </div>
     </div>
 </div>
@@ -195,7 +183,7 @@
     //  Fully compliant with buttoninstruction.txt
     // --------------------------------------------------------------
     (function() {
-        // Extract numeric part from current filename (e.g., "9.html" → 9)
+        // Extract numeric part from current filename (e.g., "11.html" → 11)
         function getCurrentNumber() {
             const path = window.location.pathname;
             const filename = path.substring(path.lastIndexOf('/') + 1);
@@ -235,7 +223,7 @@
         }
 
         // Buttons are ALWAYS visible (CSS enforces display:flex)
-        // No extra logic, no existence checks — exactly as required.
+        // No existence checks — exactly as required.
     })();
 </script>
 </body>

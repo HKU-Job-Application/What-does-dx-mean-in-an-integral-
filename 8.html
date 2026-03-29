@@ -268,16 +268,13 @@
     <div class="content-card">
         <!-- exact narrative paragraphs (capital Delta in last sentence) -->
         <div class="text-block">
-            Let me make two points.
-        </div>
-        <div class="text-block">
-            First, if the height of each rectangle is the same as its counterpart on the right, what makes the combined area so different? Obviously, the widths. But we can go further and ask, what is the relationship of the width of one rectangle on one side and the width of the counterpart on the other? In other words, what is the relationship between \(x_{i+1}-x_i\) and \(u_{i+1}-u_i\)?
+           We have seen that the widths differ. But we can go further and ask, what is the relationship of the width of one rectangle on one side and the width of the counterpart on the other? In other words, what is the relationship between \(x_{i+1}-x_i\) and \(u_{i+1}-u_i\)?
         </div>
         <div class="text-block">
             We could try to look at their ratio, \(\dfrac{x_{i+1}-x_i}{u_{i+1}-u_i}\). Now remember, the way we set it up, \(x_i=u_i^2\). So we're really investigating \(\dfrac{u_{i+1}^2-u_i^2}{u_{i+1}-u_i}\).
         </div>
         <div class="text-block">
-            Doesn't that remind you of some famous expression? Something like \(\dfrac{g(u+\epsilon)-g(u)}{\epsilon}\), where \(g(u)=u^2\)? That's right! When we choose divisions of the interval where the sub-intervals get thinner and thinner, \(\dfrac{u_{i+1}^2-u_i^2}{u_{i+1}-u_i}\) gets closer to the derivative of \(g(u)\) at \(u_i\), in other words \(2u_i\). <strong>That's where the rule for substituting variables comes from. The ratio between \(\text{d}x\) and \(\text{d}u\) really is \(2u\).</strong>
+            Doesn't that remind you of some famous expression? Something like \(\dfrac{g(u+\epsilon)-g(u)}{\epsilon}\), where \(g(u)=u^2\)? That's right! When we choose divisions of the interval where the sub-intervals get thinner and thinner, \(\dfrac{u_{i+1}^2-u_i^2}{u_{i+1}-u_i}\) gets closer to the derivative of \(g(u)\) at \(u_i\), in other words \(2u_i\). <strong>That's where the rule for substituting variables comes from. The ratio between \(\text{d}x\) and \(\text{d}u\) really is \(2u\). That's why \(\text{d}x=2u\,\text{d}u\).</strong>
         </div>
         <!-- last text block with floating comparison box (now uses Δ) -->
         <div class="text-block" style="overflow: auto;">
@@ -286,7 +283,7 @@
                 <div class="math-row" id="compDeltaX">\(\Delta x =\)</div>
                 <div class="math-row" id="compTwoUDeltaU">\(2u_i \Delta u =\)</div>
             </div>
-            <p>Have a look at the two graphs again, and when you hover or click on each rectangle, compare \(\Delta x\) and \(2u_i \Delta u\) in this text box. The slider has been changed to reflect thinner divisions, so that \(\Delta x\) compares better to \(2u_i \Delta u\).</p>
+            <p>Have a look at the two graphs again, and when you hover or click on each rectangle, compare \(\Delta x\) and \(2u_i \Delta u\) in this text box right next to here. Move the slider around - the bigger the value of \(n\), the better the comparison.</p>
         </div>
         <div class="clear-float"></div>
 

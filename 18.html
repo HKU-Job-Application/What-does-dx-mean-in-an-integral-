@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Double integrals · Polar coordinates · Riemann sums on a disc</title>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+    <title>Double integrals · Polar coordinates · Area ratios & correction factors</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
             }
-        }
+        };
     </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     <style>
         * {
             margin: 0;
@@ -52,40 +52,24 @@
             color: #1a2c3e;
             margin-bottom: 1.5rem;
         }
-        /* Two‑column layout for the first row (point demo) */
-        .first-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            margin: 1.8rem 0 1rem 0;
-            justify-content: center;
-        }
-        .first-row .text-col {
-            flex: 1;
-            min-width: 280px;
-        }
-        .first-row .demo-col {
-            flex: 0.8;
-            min-width: 320px;
-        }
-        /* Graphs below – adjust alignment and column widths */
+        /* Two‑column layout for graphs + infobox */
         .graphs-below {
             margin-top: 2rem;
             display: flex;
             flex-wrap: wrap;
             gap: 2rem;
             justify-content: center;
-            align-items: center;   /* vertical centering: left graph aligns with middle of right stack */
+            align-items: center;   /* vertical centering */
         }
         .left-stack {
             flex: 1.4;
-            min-width: 380px;
+            min-width: 320px;
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
         .right-stack {
-            flex: 0.65;           /* narrower column – makes both right graphs smaller */
+            flex: 0.65;
             min-width: 340px;
             display: flex;
             flex-direction: column;
@@ -94,7 +78,7 @@
         .graph-panel {
             background: #ffffffdd;
             border-radius: 28px;
-            padding: 0.7rem 0.9rem;   /* slightly reduced padding */
+            padding: 0.7rem 0.9rem;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
             transition: all 0.1s ease;
         }
@@ -102,44 +86,52 @@
             text-align: center;
             font-weight: bold;
             margin-bottom: 10px;
-            font-size: 1rem;          /* smaller heading to save space */
+            font-size: 1rem;
             background: #f0f4fe;
             padding: 5px 0;
             border-radius: 40px;
             letter-spacing: 0.2px;
             color: #1e4660;
         }
-        .three-container {
-            position: relative;
-            width: 100%;
-            height: auto;
-            aspect-ratio: 600 / 420;
-            background: #fefef7;
-            border-radius: 20px;
-            overflow: hidden;
+        .info-box {
+            background: #fefaf5;
+            border-radius: 24px;
+            padding: 1.2rem 1rem;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
             border: 1px solid #e2e8f0;
-        }
-        .info-overlay {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            background: rgba(20, 25, 35, 0.88);
-            backdrop-filter: blur(8px);
-            padding: 12px 18px;
-            border-radius: 20px;
-            color: #f8fafc;
             font-family: 'Menlo', 'Consolas', monospace;
-            font-size: 0.95rem;
-            font-weight: 500;
-            border-left: 4px solid #3b82f6;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.2);
-            pointer-events: none;
-            z-index: 20;
-            white-space: nowrap;
+            font-size: 0.9rem;
         }
-        .info-overlay p {
-            margin: 2px 0;
-            line-height: 1.4;
+        .info-box h3 {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #1e4660;
+            text-align: center;
+            font-family: 'Arial', sans-serif;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed #cbd5e1;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #2c3e66;
+        }
+        .info-value {
+            font-weight: 500;
+            color: #0f2b3d;
+            text-align: right;
+        }
+        .info-sub {
+            font-size: 0.8rem;
+            color: #4a627a;
+            margin-top: 12px;
+            font-style: italic;
+            text-align: center;
         }
         .grid-canvas-container {
             background: #ffffff;
@@ -161,13 +153,6 @@
         #rtCanvas {
             aspect-ratio: 600 / 420;
             background: #fefaf0;
-        }
-        #pointCanvas {
-            aspect-ratio: 1 / 1;
-            background: #fefefa;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            width: 100%;
         }
         .slider-area {
             background: #f1f5f9;
@@ -201,17 +186,6 @@
             font-family: monospace;
             font-weight: bold;
         }
-        .coord-panel {
-            background: #eef2ff;
-            border-radius: 20px;
-            padding: 8px 12px;
-            margin-top: 8px;
-            text-align: center;
-            font-family: monospace;
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #0f2b3d;
-        }
         .fig-caption {
             font-size: 0.72rem;
             color: #4a627a;
@@ -223,8 +197,8 @@
             .presentation-content { padding: 1rem 1rem 80px 1rem; }
             .content-card { padding: 1.2rem; }
             .text-block { font-size: 1rem; }
-            .info-overlay { font-size: 0.75rem; padding: 8px 12px; white-space: normal; }
             .right-stack { flex: 0.8; min-width: 280px; }
+            .left-stack { flex: 1; min-width: 260px; }
         }
         .nav-controls {
             position: fixed;
@@ -268,78 +242,77 @@
 <body>
 <div class="presentation-content">
     <div class="content-card">
-        <!-- First row: text on left, point demo on right -->
-        <div class="first-row">
-<div class="text-col">
-    <div class="text-block">
-        These shapes are inspired by polar coordinates. A point on the \(xy\) plane can be described not just by \(x\) and \(y\) coordinates, but also by asking what the radius or distance of the point is from the origin and also what angle it makes in radians relative to the \(x\)-axis. Presumably you've seen this in high school, but in case you haven't I have a graph to the right of this paragraph, where you can drag the point \(P\) around and observe how the coordinates change.
-    </div>
-    <div class="text-block">
-        You've also probably seen the formula for \(x\) and \(y\) in terms of \(r\) and \(\theta\). But if you haven't, it is \(x=r\cos(\theta)\) and \(y=r\sin(\theta)\). Convince yourself of it by putting the point \(P\) in the first quadrant and considering what kind of right-angled triangle is being made with \(r\), \(x\) and \(y\). Also, under the graph is an infobox giving the numerical coordinates of the point in both \(xy\) and \(r\theta\) terms, so you can numerically check that the formula is right. For the sake of consistency, \(\theta\) is always measured in radians and not degrees.
-    </div>
-</div>
-            <div class="demo-col">
-                <div class="graph-panel">
-                    <div class="func-heading">📌 Click, hold and move point \(P\): polar coordinates demo</div>
-                    <canvas id="pointCanvas" width="500" height="500" style="width:100%; aspect-ratio:1/1; border-radius:20px; background:#fefefa;"></canvas>
-                    <div class="coord-panel" id="coordDisplay">
-                        <div id="cartesianLine">Cartesian: (0.00, 0.00)</div>
-                        <div id="polarLine">Polar: \(r = 0.00\), \(\theta = 0.00\) rad</div>
-                    </div>
-                </div>
-            </div>
+        <!-- All text from 20.html, plus the new paragraph -->
+        <div class="text-block">
+            So what is the correct rule for substituting $\text{d}r\,\text{d}\theta$ in place of $\text{d}x\,\text{d]y$?
+        </div>
+        <div class="text-block">
+            Once again, the fact that the area of the C-piece isn't the area of the $r\theta$ rectangle is key. Therefore, we need to know how they differ - in other words, what their ratio is.
+        </div>
+        <div class="text-block">
+            We could call the points on the $r$-interval $r_i$, where $0\leq i\leq n-1$. We could call the points on the $\theta$-interval $\theta_j$, where $0\leq j\leq n-1$. But since these points have exact values, we should give an expression of what they are.
+        </div>
+        <div class="text-block">
+            Each rectangle $R_{i,j}$ is, within the "pretend" graph, horizontally in the $i$-th sub-interval and vertically in the $j$-th sub-interval. Horizontally the sub-interval is from $r_i$ to $r_{i+1}$. You can check that this is $\left[\sqrt{2}\,\dfrac{i}{n},\; \sqrt{2}\,\dfrac{i+1}{n}\right]$. Vertically the interval is from $\theta_j$ to $\theta_{j+1}$. You can check that this is $\left[2\pi\,\dfrac{j}{n},\; 2\pi\,\dfrac{j+1}{n}\right]$. The area of this rectangle is 
+            \[
+            \frac{\sqrt{2} \cdot 2\pi}{n^{2}}.
+            \]
+        </div>
+        <div class="text-block">
+            What is the area of the paired-up $C$-piece? Remember, the area of the section of angle $\mu$ radians in a circle of radius $s$ is equal to $\frac{1}{2}\mu s^2$. We have that object of radius $\sqrt{2}\frac{i+1}{n}$ and then remove the smaller object of radius  $\sqrt{2}\frac{i}{n}$. We thus compute
+            \[
+            \frac{2\pi\frac{j+1}{n} - 2\pi\frac{j}{n}}{2} \;\cdot\; \left( \left(\sqrt{2}\frac{i+1}{n}\right)^{2} - \left(\sqrt{2}\frac{i}{n}\right)^{2} \right)
+            = \frac{2\pi\,(2i+1)}{n^{3}}.
+            \]
+        </div>
+        <div class="text-block">
+            The ratio of the corresponding $C$-piece to the rectangle is
+            \[
+            \frac{ \displaystyle \quad \frac{2\pi(2i+1)}{n^{3}} \quad }{ \displaystyle \frac{\sqrt{2}\cdot 2\pi}{n^{2}} \quad }
+            = \sqrt{2}\,\frac{i+\frac{1}{2}}{n}.
+            \] 
+        </div>
+        <div class="text-block">
+            If you want to check this ratio numerically, look at these graphs, which are the exact same graphs from the last slide. <strong>Click</strong> on one of the sub-rectangles. Look at the bottom of the "📌 Cell information" infobox that reads something like "🔍 Selected cell (i=..., j=...) · areas above". Use a calculator to check that the ratio of the C-piece area to the small rectangle area matches the equation I ended up with.
         </div>
 
-        <!-- All the explanatory text (continues after the first row) -->
-        <div class="text-block" style="margin-top:1rem;">
-            Remember, the disc \(C\) is the set of every point on the \(xy\) plane with radius at most \(\sqrt{2}\). Therefore, in polar coordinates, we can represent \(C\) as those points where the radius lies in \([0,\sqrt{2}]\) and angle in \([0,2\pi)\).
-        </div>
-        <div class="text-block">
-            By the way, mathematically for the purpose of calculating integrals, it doesn't matter that I made the second interval open on the right end, as in \(2\pi)\). The reason is that on the \(xy\) plane, every measure we are going to consider treats any point as having zero length on an interval, any line segment as having zero area on a plane, and every plane cut as having zero volume in 3D space. So in space having at least two dimensions, if we consider any set where the first coordinate is only allowed to have the value \(2\pi\), then immediately we know that set to have zero measure. Equivalently if we take any set where the first coordinate is allowed to range anywhere in \([0,2\pi]\), and another set defined exactly the same way except the first coordinate can attain \(2\pi\) as well as be in \([0,2\pi]\), the measures of the two sets must be the same. Those points where the first coordinate can only be that one constant value "do not count for anything".
-        </div>
-        <div class="text-block">
-            Back to the subject at hand. Well, we could "draw" the points of \(C\) on a \(r\theta\) graph, even though that isn't really where the points of \(C\) are - it's just a representation. We could imagine a \(r\)-axis as an interval from \(0\) to \(\sqrt{2}\), and a \(\theta\)-axis as an interval from \(0\) to \(2\pi\). We could then divide both axes into \(n\) equal pieces and look at the little rectangles.
-        </div>
-        <div class="text-block">
-            Each of the new small shapes I introduced on the last slide, little pieces of rings inside \(C\), is just the points on the actual \(xy\) graph (the lower right) that a small rectangle on the "pretend" \(r\theta\) graph (the upper right) represents.
-        </div>
-        <div class="text-block">
-            Have a look at the three graphs on the bottom. Use the slider to make the division of \(C\) finer. The thin volumes on the left still have as their base the small pieces of \(C\) on the \(xy\) graph, not the rectangular representation.
-        </div>
-
-        <!-- Below all text: the three remaining graphs in a two‑column layout, vertically aligned -->
+        <!-- Two‑column layout: left infobox, right stacked graphs (rθ + polar) -->
         <div class="graphs-below">
-            <!-- LEFT COLUMN: 3D surface over disc -->
+            <!-- LEFT COLUMN: info panel -->
             <div class="left-stack">
                 <div class="graph-panel">
-                    <div class="func-heading">\( f(x,y) = e^{-x^{2}-y^{2}} \) on \(x^2+y^2\le 2\)</div>
-                    <div class="three-container" id="threeContainer">
-                        <div id="integralInfoBox" class="info-overlay">
-                            <p>📐 <strong>Riemann estimate</strong>: <span id="estimateValue">2.4102</span></p>
-                            <p>🎯 <strong>Exact integral</strong> : \(2.7164\)</p>
+                    <div class="func-heading">📊 C vs. rθ cell info & integral estimates</div>
+                    <div id="infoBox" class="info-box">
+                        <h3>📌 Cell information</h3>
+                        <div id="cellAreaDetails">
+                            <div class="info-row"><span class="info-label">Pretend rθ rectangle area:</span><span class="info-value" id="rectAreaVal">—</span></div>
+                            <div class="info-row"><span class="info-label">Actual area in C:</span><span class="info-value" id="polarAreaVal">—</span></div>
                         </div>
-                    </div>
-                    <div class="fig-caption">
-                        🖱️ Drag to rotate · Right‑click to pan · Scroll to zoom · Translucent surface<br>
-                        🔴 Red = volume element (height = \(e^{-m^2}\) where \(m\) = max radius in shape)
+                        <div style="margin: 12px 0; border-top: 1px solid #ddd;"></div>
+                        <div id="globalEstimates">
+                            <div class="info-row"><span class="info-label">🌐 Weird (dr dθ) estimate of the integral:</span><span class="info-value" id="weirdEstimate">—</span></div>
+                            <div class="info-row"><span class="info-label">✅ Actual (dx dy) estimate of the integral:</span><span class="info-value" id="actualEstimate">—</span></div>
+                            <div class="info-row"><span class="info-label">🔢 Current n =</span><span class="info-value" id="currentNdisplay">—</span></div>
+                        </div>
+                        <div class="info-sub" id="selectionHint">🖱️ Hover or click any cell on the right → area details appear here</div>
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: rθ grid and polar grid stacked (smaller) -->
+            <!-- RIGHT COLUMN: two graphs stacked (rθ plane + polar grid) -->
             <div class="right-stack">
-                <!-- Panel 2: rθ parameter space (rectangular grid) -->
+                <!-- Panel 2: rθ parameter space -->
                 <div class="graph-panel">
                     <div class="func-heading">\(r\theta\)-plane: parameters \((r,\theta)\) &nbsp; \(r\in[0,\sqrt{2}],\; \theta\in[0,2\pi)\)</div>
                     <div class="grid-canvas-container">
                         <canvas id="rtCanvas" width="600" height="420" style="width:100%; height:auto; aspect-ratio:600/420; background:#fefaf0;"></canvas>
                     </div>
                     <div class="fig-caption">
-                        🟨 Hover/click → highlights matching polar cell & 3D volume
+                        🟨 Hover/click → highlights matching polar cell & shows areas in infobox
                     </div>
                 </div>
 
-                <!-- Panel 3: polar grid (annular sectors) with clear xy axes -->
+                <!-- Panel 3: polar grid (annular sectors) -->
                 <div class="graph-panel">
                     <div class="func-heading">\( C = \{(x,y): x^{2}+y^{2} \le 2\} \) &nbsp; polar cells</div>
                     <div class="slider-area">
@@ -351,8 +324,8 @@
                         <canvas id="polarCanvas" width="600" height="600" style="width:100%; height:auto; aspect-ratio:1/1; background:#fef9ef;"></canvas>
                     </div>
                     <div class="fig-caption">
-                        🟠 Hover/click → highlights matching \(r\theta\) rectangle & 3D volume<br>
-                        📐 Solid axes: \(x\) (right) and \(y\) (up) extend beyond the disc
+                        🟠 Hover/click → highlights matching \(r\theta\) rectangle & shows cell areas in infobox<br>
+                        📐 Solid axes: \(x\) (right) and \(y\) (up)
                     </div>
                 </div>
             </div>
@@ -365,238 +338,69 @@
     <button id="nextButton" class="nav-btn btn-next">Next →</button>
 </div>
 
-<script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
+<script>
     // --------------------------------------------------------------
-    // 1. Safe setup with error handling and bfcache support
+    //  Global variables and precomputed chart estimates (n = 5,10,15,20,25)
     // --------------------------------------------------------------
-    const container = document.getElementById('threeContainer');
-    let scene, camera, renderer, controls, surfaceMesh, wireframeMesh, circleOutline;
-    let currentVolumeMesh = null;
-    let polarCells = [];
-    let hoverCellIdx = null, lockedCellIdx = null;
-    let currentN = 5;
     const DISC_RADIUS = Math.sqrt(2);
+    let currentN = 5;
+    let polarCells = [];          // array of cell objects
+    let hoverCellIdx = null;
+    let lockedCellIdx = null;
 
-    // Global flag to prevent duplicate reinitialization
-    let threeInitialized = false;
+    // Canvas references
+    const rtCanvas = document.getElementById('rtCanvas');
+    const rtCtx = rtCanvas.getContext('2d');
+    const polarCanvas = document.getElementById('polarCanvas');
+    const polarCtx = polarCanvas.getContext('2d');
 
-    // Function to build the 3D scene (call this after ensuring container has dimensions)
-    function initThree() {
-        if (threeInitialized) {
-            // Already initialized, just force a resize
-            if (renderer) handleResize();
-            return;
-        }
-        try {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xfefef7);
+    // Precomputed integral estimates from the chart (Sum1 = weird dr dθ, Sum2 = actual dx dy)
+    const integralChart = {
+        5:  { weird: 4.5307, actual: 2.1864 },
+        10: { weird: 4.9268, actual: 2.4383 },
+        15: { weird: 5.0571, actual: 2.5282 },
+        20: { weird: 5.1219, actual: 2.5742 },
+        25: { weird: 5.1607, actual: 2.6021 }
+    };
 
-            camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-            camera.position.set(3.2, 2.8, 4.2);
-            camera.lookAt(0, 0, 0);
+    // Helper: get estimate for given n (n guaranteed to be 5,10,15,20,25)
+    function getWeirdEstimate(n) { return integralChart[n]?.weird ?? 4.5307; }
+    function getActualEstimate(n) { return integralChart[n]?.actual ?? 2.1864; }
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-            renderer.setClearColor(0xfefef7, 1);
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            container.appendChild(renderer.domElement);
-
-            // Handle WebGL context loss (restore on next frame)
-            renderer.domElement.addEventListener('webglcontextlost', (event) => {
-                event.preventDefault();
-                console.warn('WebGL context lost. Will reinitialize on next frame.');
-                threeInitialized = false;
-                // Schedule reinitialization
-                requestAnimationFrame(() => initThree());
-            });
-
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.rotateSpeed = 1.2;
-            controls.zoomSpeed = 1.2;
-            controls.panSpeed = 0.8;
-
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0x404060);
-            scene.add(ambientLight);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-            dirLight.position.set(2, 5, 3);
-            scene.add(dirLight);
-            const backLight = new THREE.PointLight(0xccaa88, 0.4);
-            backLight.position.set(-2, 1, -3);
-            scene.add(backLight);
-            const fillLight = new THREE.PointLight(0xaaccff, 0.3);
-            fillLight.position.set(1, 2, 2);
-            scene.add(fillLight);
-            const gridHelper = new THREE.GridHelper(5, 20, 0x888888, 0xbbbbbb);
-            gridHelper.position.y = -0.05;
-            scene.add(gridHelper);
-
-            // Surface geometry (disc)
-            const R = DISC_RADIUS;
-            const segments = 90;
-            const stepDisc = (2 * R) / segments;
-            const startCoord = -R;
-            function insideDisc(x, z) { return (x*x + z*z) <= R*R + 1e-9; }
-            const vertices = [];
-            const indexMap = [];
-            for (let i = 0; i <= segments; i++) {
-                indexMap[i] = [];
-                for (let j = 0; j <= segments; j++) indexMap[i][j] = -1;
-            }
-            for (let i = 0; i <= segments; i++) {
-                const x = startCoord + i * stepDisc;
-                for (let j = 0; j <= segments; j++) {
-                    const z = startCoord + j * stepDisc;
-                    if (insideDisc(x, z)) {
-                        const yVal = Math.exp(-(x*x + z*z));
-                        vertices.push(x, yVal, z);
-                        indexMap[i][j] = vertices.length / 3 - 1;
-                    }
-                }
-            }
-            const indices = [];
-            for (let i = 0; i < segments; i++) {
-                for (let j = 0; j < segments; j++) {
-                    const i00 = indexMap[i][j], i10 = indexMap[i+1][j], i01 = indexMap[i][j+1], i11 = indexMap[i+1][j+1];
-                    if (i00 !== -1 && i10 !== -1 && i01 !== -1 && i11 !== -1) {
-                        indices.push(i00, i10, i01);
-                        indices.push(i10, i11, i01);
-                    }
-                }
-            }
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
-            geometry.setIndex(indices);
-            geometry.computeVertexNormals();
-            const surfaceMat = new THREE.MeshPhongMaterial({ color: 0x3a86ff, side: THREE.DoubleSide, transparent: true, opacity: 0.4, emissive: 0x001133 });
-            surfaceMesh = new THREE.Mesh(geometry, surfaceMat);
-            scene.add(surfaceMesh);
-            const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x2266aa, wireframe: true, transparent: true, opacity: 0.2 });
-            wireframeMesh = new THREE.Mesh(geometry, wireframeMat);
-            scene.add(wireframeMesh);
-            const circlePoints = [];
-            for (let i = 0; i <= 80; i++) {
-                const angle = (i / 80) * Math.PI * 2;
-                circlePoints.push(new THREE.Vector3(R * Math.cos(angle), -0.045, R * Math.sin(angle)));
-            }
-            const circleOutlineObj = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(circlePoints), new THREE.LineBasicMaterial({ color: 0x2c5282 }));
-            scene.add(circleOutlineObj);
-            circleOutline = circleOutlineObj;
-
-            threeInitialized = true;
-            console.log('Three.js initialized');
-        } catch (err) {
-            console.error('Three.js initialization error:', err);
-            // Still mark as tried to prevent infinite loop
-            threeInitialized = true;
-        }
-    }
-
-    // Helper functions for volume, cells, etc. (unchanged)
-    function removeVolume() {
-        if (currentVolumeMesh) {
-            scene.remove(currentVolumeMesh);
-            currentVolumeMesh = null;
-        }
-    }
-
-    function createVolumeMeshForCell(cell) {
-        const h = cell.heightVal;
-        if (h <= 1e-6) return null;
-        const r0 = cell.r0, r1 = cell.r1, theta0 = cell.theta0, theta1 = cell.theta1;
-        const radialSteps = 24, angularSteps = 24;
-        const verticesMesh = [];
-        const indicesMesh = [];
-        const nRad = radialSteps+1, nAng = angularSteps+1;
-        const bottomPos = [], topPos = [];
-        for (let i = 0; i <= radialSteps; i++) {
-            const r = r0 + (r1 - r0) * i / radialSteps;
-            for (let j = 0; j <= angularSteps; j++) {
-                const theta = theta0 + (theta1 - theta0) * j / angularSteps;
-                const x = r * Math.cos(theta), z = r * Math.sin(theta);
-                bottomPos.push({x,z}); topPos.push({x,z});
-            }
-        }
-        for (let p of bottomPos) verticesMesh.push(p.x, 0, p.z);
-        for (let p of topPos) verticesMesh.push(p.x, h, p.z);
-        const topStart = bottomPos.length;
-        for (let i = 0; i < radialSteps; i++) {
-            for (let j = 0; j < angularSteps; j++) {
-                const idx = i * nAng + j;
-                const i1 = idx, i2 = idx+1, i3 = idx+nAng, i4 = idx+nAng+1;
-                indicesMesh.push(i1, i3, i2, i2, i3, i4);
-                const t1 = topStart+i1, t2 = topStart+i2, t3 = topStart+i3, t4 = topStart+i4;
-                indicesMesh.push(t1, t3, t2, t2, t3, t4);
-                indicesMesh.push(i1, i2, t1, i2, t2, t1, i2, i4, t2, i4, t4, t2, i4, i3, t4, i3, t3, t4, i3, i1, t3, i1, t1, t3);
-            }
-        }
-        const geom = new THREE.BufferGeometry();
-        geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(verticesMesh), 3));
-        geom.setIndex(indicesMesh);
-        geom.computeVertexNormals();
-        const volMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, emissive: 0x441111, roughness: 0.4 });
-        return new THREE.Mesh(geom, volMat);
-    }
-
-    function updateVolumeFromSelection() {
-        if (!threeInitialized) return;
-        const activeIdx = (lockedCellIdx !== null) ? lockedCellIdx : hoverCellIdx;
-        removeVolume();
-        if (activeIdx !== null && polarCells[activeIdx]) {
-            const mesh = createVolumeMeshForCell(polarCells[activeIdx]);
-            if (mesh) {
-                scene.add(mesh);
-                currentVolumeMesh = mesh;
-            }
-        }
-    }
-
+    // Build polar cells (annular sectors) for current n
     function buildPolarCells(n) {
         const cells = [];
         const dr = DISC_RADIUS / n;
         const dtheta = 2 * Math.PI / n;
         for (let i = 0; i < n; i++) {
-            const r0 = i * dr, r1 = (i+1)*dr;
+            const r0 = i * dr;
+            const r1 = (i + 1) * dr;
             const maxRadius = r1;
-            const heightVal = Math.exp(-(maxRadius * maxRadius));
-            const area = 0.5 * (r1*r1 - r0*r0) * dtheta;
             for (let j = 0; j < n; j++) {
                 cells.push({
-                    idx: cells.length, i, j, r0, r1,
-                    theta0: j*dtheta, theta1: (j+1)*dtheta,
-                    maxRadius, heightVal, area
+                    idx: cells.length,
+                    i, j,
+                    r0, r1,
+                    theta0: j * dtheta,
+                    theta1: (j + 1) * dtheta,
+                    maxRadius,
+                    areaActual: 0.5 * (r1 * r1 - r0 * r0) * dtheta,
+                    rectArea: dr * dtheta   // area in rθ parameter space
                 });
             }
         }
         return cells;
     }
 
-    function computeRiemannEstimate(cells) {
-        let sum = 0;
-        for (const cell of cells) sum += cell.heightVal * cell.area;
-        return sum;
-    }
-
-    function updateLeftPanel() {
-        document.getElementById('estimateValue').innerText = computeRiemannEstimate(polarCells).toFixed(4);
-        document.getElementById('nValueLabel').innerText = currentN;
-    }
-
-    // Canvas drawing functions (unchanged but rely on correct canvas sizing)
-    const rtCanvas = document.getElementById('rtCanvas');
-    const rtCtx = rtCanvas.getContext('2d');
-    const polarCanvas = document.getElementById('polarCanvas');
-    const polarCtx = polarCanvas.getContext('2d');
+    // --------------------------------------------------------------
+    // Drawing functions: rθ grid and polar grid (highlighting & selection)
+    // --------------------------------------------------------------
     let rtWidth, rtHeight;
 
     function drawRTGrid() {
         if (!rtCanvas) return;
         const w = rtCanvas.clientWidth, h = rtCanvas.clientHeight;
-        if (w === 0 || h === 0) return; // wait for resize
+        if (w === 0 || h === 0) return;
         rtCanvas.width = w; rtCanvas.height = h;
         rtWidth = w; rtHeight = h;
         const margin = { left: 48, right: 28, top: 28, bottom: 38 };
@@ -608,54 +412,61 @@
         const rMax = DISC_RADIUS, thetaMax = 2 * Math.PI;
         function rToX(r) { return margin.left + (r / rMax) * plotW; }
         function thetaToY(theta) { return margin.top + plotH - (theta / thetaMax) * plotH; }
+
+        // Draw grid lines
         rtCtx.beginPath();
         rtCtx.strokeStyle = "#aaa";
         rtCtx.lineWidth = 0.5;
         for (let i = 0; i <= currentN; i++) {
             const x = rToX(i * DISC_RADIUS / currentN);
-            rtCtx.moveTo(x, margin.top); rtCtx.lineTo(x, margin.top+plotH);
-            const y = thetaToY(i * 2*Math.PI / currentN);
-            rtCtx.moveTo(margin.left, y); rtCtx.lineTo(margin.left+plotW, y);
+            rtCtx.moveTo(x, margin.top); rtCtx.lineTo(x, margin.top + plotH);
+            const y = thetaToY(i * 2 * Math.PI / currentN);
+            rtCtx.moveTo(margin.left, y); rtCtx.lineTo(margin.left + plotW, y);
         }
         rtCtx.stroke();
+
         const drCell = DISC_RADIUS / currentN;
-        const dthetaCell = 2*Math.PI / currentN;
+        const dthetaCell = 2 * Math.PI / currentN;
+        const activeIdx = (lockedCellIdx !== null) ? lockedCellIdx : hoverCellIdx;
+
+        // Highlight active rectangle
         for (let i = 0; i < currentN; i++) {
             for (let j = 0; j < currentN; j++) {
                 const idx = i * currentN + j;
-                const isActive = (lockedCellIdx === idx) || (hoverCellIdx === idx);
-                if (isActive) {
-                    const x0 = rToX(i*drCell);
-                    const x1 = rToX((i+1)*drCell);
-                    const y0 = thetaToY((j+1)*dthetaCell);
-                    const y1 = thetaToY(j*dthetaCell);
+                if (activeIdx === idx) {
+                    const x0 = rToX(i * drCell);
+                    const x1 = rToX((i + 1) * drCell);
+                    const y0 = thetaToY((j + 1) * dthetaCell);
+                    const y1 = thetaToY(j * dthetaCell);
                     rtCtx.fillStyle = (lockedCellIdx === idx) ? "rgba(220,38,38,0.55)" : "rgba(245,158,11,0.48)";
-                    rtCtx.fillRect(x0, y0, x1-x0, y1-y0);
+                    rtCtx.fillRect(x0, y0, x1 - x0, y1 - y0);
                     rtCtx.strokeStyle = "#b91c1c";
                     rtCtx.lineWidth = 1.8;
-                    rtCtx.strokeRect(x0, y0, x1-x0, y1-y0);
+                    rtCtx.strokeRect(x0, y0, x1 - x0, y1 - y0);
                 }
             }
         }
+
+        // Axes and labels
         rtCtx.beginPath();
-        rtCtx.moveTo(margin.left, margin.top); rtCtx.lineTo(margin.left+plotW, margin.top);
-        rtCtx.lineTo(margin.left+plotW, margin.top+plotH); rtCtx.lineTo(margin.left, margin.top+plotH);
+        rtCtx.moveTo(margin.left, margin.top); rtCtx.lineTo(margin.left + plotW, margin.top);
+        rtCtx.lineTo(margin.left + plotW, margin.top + plotH); rtCtx.lineTo(margin.left, margin.top + plotH);
         rtCtx.closePath();
         rtCtx.strokeStyle = "#2c5282";
         rtCtx.lineWidth = 1.8;
         rtCtx.stroke();
         rtCtx.fillStyle = "#1e4660";
         rtCtx.font = "bold 11px 'Arial'";
-        rtCtx.fillText("r", margin.left+plotW-12, margin.top+plotH-6);
+        rtCtx.fillText("r", margin.left + plotW - 12, margin.top + plotH - 6);
         rtCtx.save();
-        rtCtx.translate(margin.left-18, margin.top+plotH/2);
-        rtCtx.rotate(-Math.PI/2);
+        rtCtx.translate(margin.left - 18, margin.top + plotH / 2);
+        rtCtx.rotate(-Math.PI / 2);
         rtCtx.fillText("θ", -8, 0);
         rtCtx.restore();
-        rtCtx.fillText("0", margin.left-10, margin.top+plotH+5);
-        rtCtx.fillText(String(DISC_RADIUS.toFixed(2)), rToX(DISC_RADIUS)-15, margin.top+plotH+5);
-        rtCtx.fillText("0", margin.left-18, thetaToY(0)+4);
-        rtCtx.fillText("2π", margin.left-26, thetaToY(2*Math.PI)-4);
+        rtCtx.fillText("0", margin.left - 10, margin.top + plotH + 5);
+        rtCtx.fillText(String(DISC_RADIUS.toFixed(2)), rToX(DISC_RADIUS) - 15, margin.top + plotH + 5);
+        rtCtx.fillText("0", margin.left - 18, thetaToY(0) + 4);
+        rtCtx.fillText("2π", margin.left - 26, thetaToY(2 * Math.PI) - 4);
     }
 
     function drawPolarGrid() {
@@ -663,22 +474,24 @@
         if (size === 0) return;
         polarCanvas.width = size; polarCanvas.height = size;
         const ctx = polarCtx;
-        const center = { x: size/2, y: size/2 };
+        const center = { x: size / 2, y: size / 2 };
         const radiusPx = size * 0.42;
         const worldExtent = DISC_RADIUS * 1.35;
         const scale = radiusPx / worldExtent;
-        function worldToCanvas(xw, yw) { return { x: center.x + xw*scale, y: center.y - yw*scale }; }
-        ctx.clearRect(0,0,size,size);
-        ctx.fillStyle = "#fef9ef"; ctx.fillRect(0,0,size,size);
+        function worldToCanvas(xw, yw) { return { x: center.x + xw * scale, y: center.y - yw * scale }; }
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.fillStyle = "#fef9ef";
+        ctx.fillRect(0, 0, size, size);
+
+        // Draw axes
         const xAxisLeft = worldToCanvas(-worldExtent, 0);
         const xAxisRight = worldToCanvas(worldExtent, 0);
         const yAxisBottom = worldToCanvas(0, -worldExtent);
         const yAxisTop = worldToCanvas(0, worldExtent);
         ctx.beginPath();
-        ctx.moveTo(xAxisLeft.x, xAxisLeft.y);
-        ctx.lineTo(xAxisRight.x, xAxisRight.y);
-        ctx.moveTo(yAxisBottom.x, yAxisBottom.y);
-        ctx.lineTo(yAxisTop.x, yAxisTop.y);
+        ctx.moveTo(xAxisLeft.x, xAxisLeft.y); ctx.lineTo(xAxisRight.x, xAxisRight.y);
+        ctx.moveTo(yAxisBottom.x, yAxisBottom.y); ctx.lineTo(yAxisTop.x, yAxisTop.y);
         ctx.strokeStyle = "#2c5282";
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -686,81 +499,113 @@
         ctx.font = "bold 13px 'Arial'";
         ctx.fillText("x", xAxisRight.x - 12, xAxisRight.y - 6);
         ctx.fillText("y", yAxisTop.x + 8, yAxisTop.y + 4);
+
+        // Ticks
         for (let val = -2; val <= 2; val++) {
             if (Math.abs(val) < 0.1) continue;
             const xTick = worldToCanvas(val, 0);
             ctx.beginPath();
-            ctx.moveTo(xTick.x, xTick.y-4); ctx.lineTo(xTick.x, xTick.y+4);
+            ctx.moveTo(xTick.x, xTick.y - 4); ctx.lineTo(xTick.x, xTick.y + 4);
             ctx.strokeStyle = "#5a6e8a"; ctx.lineWidth = 1; ctx.stroke();
             const yTick = worldToCanvas(0, val);
             ctx.beginPath();
-            ctx.moveTo(yTick.x-4, yTick.y); ctx.lineTo(yTick.x+4, yTick.y);
+            ctx.moveTo(yTick.x - 4, yTick.y); ctx.lineTo(yTick.x + 4, yTick.y);
             ctx.stroke();
         }
-        const discCenter = worldToCanvas(0,0);
+
+        const discCenter = worldToCanvas(0, 0);
         const discRadiusPx = (DISC_RADIUS / worldExtent) * radiusPx;
-        ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, discRadiusPx, 0, 2*Math.PI);
+        ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, discRadiusPx, 0, 2 * Math.PI);
         ctx.fillStyle = "rgba(100,149,237,0.12)"; ctx.fill();
         ctx.strokeStyle = "#2c5282"; ctx.lineWidth = 2.2; ctx.stroke();
-        const dtheta = 2*Math.PI/currentN, dr = DISC_RADIUS/currentN;
-        for (let j=0; j<=currentN; j++) {
-            const theta = j*dtheta;
-            const p2 = worldToCanvas(DISC_RADIUS*Math.cos(theta), DISC_RADIUS*Math.sin(theta));
+
+        const dtheta = 2 * Math.PI / currentN;
+        const dr = DISC_RADIUS / currentN;
+        // radial lines
+        for (let j = 0; j <= currentN; j++) {
+            const theta = j * dtheta;
+            const p2 = worldToCanvas(DISC_RADIUS * Math.cos(theta), DISC_RADIUS * Math.sin(theta));
             ctx.beginPath(); ctx.moveTo(discCenter.x, discCenter.y); ctx.lineTo(p2.x, p2.y);
             ctx.strokeStyle = "#9aaec0"; ctx.stroke();
         }
-        for (let i=1; i<=currentN; i++) {
-            const rpx = (i*dr / worldExtent)*radiusPx;
-            ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, rpx, 0, 2*Math.PI);
+        // circles
+        for (let i = 1; i <= currentN; i++) {
+            const rpx = (i * dr / worldExtent) * radiusPx;
+            ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, rpx, 0, 2 * Math.PI);
             ctx.stroke();
         }
+
         const activeIdx = (lockedCellIdx !== null) ? lockedCellIdx : hoverCellIdx;
         if (activeIdx !== null && polarCells[activeIdx]) {
             const cell = polarCells[activeIdx];
-            const r0px = (cell.r0 / worldExtent)*radiusPx;
-            const r1px = (cell.r1 / worldExtent)*radiusPx;
+            const r0px = (cell.r0 / worldExtent) * radiusPx;
+            const r1px = (cell.r1 / worldExtent) * radiusPx;
             const theta0 = cell.theta0, theta1 = cell.theta1;
             const steps = 40;
             ctx.beginPath();
-            for (let k=0; k<=steps; k++) {
-                const theta = theta0 + (theta1-theta0)*k/steps;
+            for (let k = 0; k <= steps; k++) {
+                const theta = theta0 + (theta1 - theta0) * k / steps;
                 const x = discCenter.x + r1px * Math.cos(theta);
                 const y = discCenter.y - r1px * Math.sin(theta);
-                if (k===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
             }
-            for (let k=steps; k>=0; k--) {
-                const theta = theta0 + (theta1-theta0)*k/steps;
+            for (let k = steps; k >= 0; k--) {
+                const theta = theta0 + (theta1 - theta0) * k / steps;
                 const x = discCenter.x + r0px * Math.cos(theta);
                 const y = discCenter.y - r0px * Math.sin(theta);
-                ctx.lineTo(x,y);
+                ctx.lineTo(x, y);
             }
             ctx.closePath();
-            ctx.fillStyle = (lockedCellIdx===activeIdx) ? "rgba(220,38,38,0.55)" : "rgba(245,158,11,0.48)";
+            ctx.fillStyle = (lockedCellIdx === activeIdx) ? "rgba(220,38,38,0.55)" : "rgba(245,158,11,0.48)";
             ctx.fill();
             ctx.strokeStyle = "#b91c1c"; ctx.lineWidth = 2.4; ctx.stroke();
         }
-        ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, discRadiusPx, 0, 2*Math.PI);
+
+        ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, discRadiusPx, 0, 2 * Math.PI);
         ctx.strokeStyle = "#1e4a76"; ctx.lineWidth = 2.4; ctx.stroke();
     }
 
-    function refreshAllCanvasesAnd3D() {
-        updateLeftPanel();
-        drawRTGrid();
-        drawPolarGrid();
-        if (threeInitialized) updateVolumeFromSelection();
+    // Update infobox based on current selection and n
+    function updateInfoBox() {
+        const selectedIdx = (lockedCellIdx !== null) ? lockedCellIdx : hoverCellIdx;
+        const weirdEst = getWeirdEstimate(currentN);
+        const actualEst = getActualEstimate(currentN);
+        document.getElementById('weirdEstimate').innerText = weirdEst.toFixed(4);
+        document.getElementById('actualEstimate').innerText = actualEst.toFixed(4);
+        document.getElementById('currentNdisplay').innerText = currentN;
+
+        if (selectedIdx !== null && polarCells[selectedIdx]) {
+            const cell = polarCells[selectedIdx];
+            document.getElementById('rectAreaVal').innerHTML = cell.rectArea.toFixed(4);
+            document.getElementById('polarAreaVal').innerHTML = cell.areaActual.toFixed(4);
+            document.getElementById('selectionHint').innerHTML = `🔍 Selected cell (i=${cell.i}, j=${cell.j}) · areas above`;
+        } else {
+            document.getElementById('rectAreaVal').innerHTML = '—';
+            document.getElementById('polarAreaVal').innerHTML = '—';
+            document.getElementById('selectionHint').innerHTML = '🖱️ Hover or click any cell on the right → area details appear here';
+        }
     }
 
-    // Interaction helpers (unchanged)
+    // Full refresh: redraw both canvases and update infobox
+    function refreshAll() {
+        drawRTGrid();
+        drawPolarGrid();
+        updateInfoBox();
+    }
+
+    // --------------------------------------------------------------
+    // Interaction helpers: map canvas coordinates to cell index
+    // --------------------------------------------------------------
     function findCellIndexFromXY(xw, yw) {
         const r = Math.hypot(xw, yw);
         if (r > DISC_RADIUS + 1e-6) return null;
         let theta = Math.atan2(yw, xw);
-        if (theta < 0) theta += 2*Math.PI;
+        if (theta < 0) theta += 2 * Math.PI;
         const dr = DISC_RADIUS / currentN;
-        const dtheta = 2*Math.PI / currentN;
+        const dtheta = 2 * Math.PI / currentN;
         const i = Math.floor(r / dr);
         const j = Math.floor(theta / dtheta);
-        if (i<0 || i>=currentN || j<0 || j>=currentN) return null;
+        if (i < 0 || i >= currentN || j < 0 || j >= currentN) return null;
         return i * currentN + j;
     }
 
@@ -770,19 +615,20 @@
         const margin = { left: 48, right: 28, top: 28, bottom: 38 };
         const plotW = w - margin.left - margin.right;
         const plotH = h - margin.top - margin.bottom;
-        if (canvasX < margin.left || canvasX > margin.left+plotW || canvasY < margin.top || canvasY > margin.top+plotH) return null;
+        if (canvasX < margin.left || canvasX > margin.left + plotW || canvasY < margin.top || canvasY > margin.top + plotH) return null;
         const rFrac = (canvasX - margin.left) / plotW;
         const thetaFrac = (canvasY - margin.top) / plotH;
         const r = rFrac * DISC_RADIUS;
-        const theta = (1 - thetaFrac) * 2*Math.PI;
+        const theta = (1 - thetaFrac) * 2 * Math.PI;
         const dr = DISC_RADIUS / currentN;
-        const dtheta = 2*Math.PI / currentN;
+        const dtheta = 2 * Math.PI / currentN;
         const i = Math.floor(r / dr);
         const j = Math.floor(theta / dtheta);
-        if (i<0 || i>=currentN || j<0 || j>=currentN) return null;
+        if (i < 0 || i >= currentN || j < 0 || j >= currentN) return null;
         return i * currentN + j;
     }
 
+    // Attach hover/click events to both canvases
     function attachCanvasEvents(canvas, isRT) {
         const getIdx = (e) => {
             const rect = canvas.getBoundingClientRect();
@@ -794,177 +640,98 @@
             const canvasX = (cx - rect.left) * scaleX;
             const canvasY = (cy - rect.top) * scaleY;
             if (isRT) return findCellIndexFromRT(canvasX, canvasY);
-            const sz = polarCanvas.width;
-            const center = sz/2;
-            const radiusPx = sz * 0.42;
-            const worldExtent = DISC_RADIUS * 1.35;
-            const scaleF = radiusPx / worldExtent;
-            const dx = (canvasX - center) / scaleF;
-            const dy = (center - canvasY) / scaleF;
-            return findCellIndexFromXY(dx, dy);
+            else {
+                const sz = polarCanvas.width;
+                const center = sz / 2;
+                const radiusPx = sz * 0.42;
+                const worldExtent = DISC_RADIUS * 1.35;
+                const scaleF = radiusPx / worldExtent;
+                const dx = (canvasX - center) / scaleF;
+                const dy = (center - canvasY) / scaleF;
+                return findCellIndexFromXY(dx, dy);
+            }
         };
+
         canvas.addEventListener('mousemove', (e) => {
             if (lockedCellIdx !== null) return;
             const idx = getIdx(e);
-            if (idx !== hoverCellIdx) { hoverCellIdx = idx; refreshAllCanvasesAnd3D(); }
+            if (idx !== hoverCellIdx) {
+                hoverCellIdx = idx;
+                refreshAll();
+            }
         });
         canvas.addEventListener('click', (e) => {
             const idx = getIdx(e);
-            if (idx !== null) { lockedCellIdx = idx; hoverCellIdx = null; refreshAllCanvasesAnd3D(); }
-            else { lockedCellIdx = null; hoverCellIdx = null; refreshAllCanvasesAnd3D(); }
+            if (idx !== null) {
+                lockedCellIdx = idx;
+                hoverCellIdx = null;
+                refreshAll();
+            } else {
+                lockedCellIdx = null;
+                hoverCellIdx = null;
+                refreshAll();
+            }
         });
-        canvas.addEventListener('mouseleave', () => { if (lockedCellIdx === null && hoverCellIdx !== null) { hoverCellIdx = null; refreshAllCanvasesAnd3D(); } });
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); const ev = e; const idx = getIdx(ev); if (lockedCellIdx===null && idx !== hoverCellIdx) { hoverCellIdx = idx; refreshAllCanvasesAnd3D(); } });
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); const idx = getIdx(e); if (idx !== null) { lockedCellIdx = idx; hoverCellIdx = null; refreshAllCanvasesAnd3D(); } else { lockedCellIdx = null; hoverCellIdx = null; refreshAllCanvasesAnd3D(); } });
+        canvas.addEventListener('mouseleave', () => {
+            if (lockedCellIdx === null && hoverCellIdx !== null) {
+                hoverCellIdx = null;
+                refreshAll();
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (lockedCellIdx === null) { const idx = getIdx(e); if (idx !== hoverCellIdx) { hoverCellIdx = idx; refreshAll(); } } });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); const idx = getIdx(e); if (idx !== null) { lockedCellIdx = idx; hoverCellIdx = null; refreshAll(); } else { lockedCellIdx = null; hoverCellIdx = null; refreshAll(); } });
     }
 
-    // Draggable point demo (unchanged)
-    const pointCanvas = document.getElementById('pointCanvas');
-    const pointCtx = pointCanvas.getContext('2d');
-    let dragPoint = { x: 1.5, y: 1.2 };
-    let dragging = false;
-    function drawPointDemo() {
-        const w = pointCanvas.clientWidth, h = pointCanvas.clientHeight;
-        if (w === 0 || h === 0) return;
-        pointCanvas.width = w; pointCanvas.height = h;
-        const center = { x: w/2, y: h/2 };
-        const scale = Math.min(w, h) / 8.5;
-        function worldToCanvas(xw, yw) { return { x: center.x + xw*scale, y: center.y - yw*scale }; }
-        pointCtx.clearRect(0,0,w,h);
-        pointCtx.fillStyle = "#fefefa"; pointCtx.fillRect(0,0,w,h);
-        pointCtx.beginPath(); pointCtx.strokeStyle = "#aaa";
-        for (let i=-4; i<=4; i++) {
-            const p = worldToCanvas(i,0);
-            pointCtx.moveTo(p.x, center.y-5); pointCtx.lineTo(p.x, center.y+5);
-            const py = worldToCanvas(0,i);
-            pointCtx.moveTo(center.x-5, py.y); pointCtx.lineTo(center.x+5, py.y);
-        }
-        pointCtx.stroke();
-        pointCtx.beginPath(); pointCtx.strokeStyle = "#2c5282"; pointCtx.lineWidth=2;
-        const xAxis = worldToCanvas(-4,0); const xEnd = worldToCanvas(4,0);
-        const yAxis = worldToCanvas(0,-4); const yEnd = worldToCanvas(0,4);
-        pointCtx.moveTo(xAxis.x, xAxis.y); pointCtx.lineTo(xEnd.x, xEnd.y);
-        pointCtx.moveTo(yAxis.x, yAxis.y); pointCtx.lineTo(yEnd.x, yEnd.y);
-        pointCtx.stroke();
-        const pWorld = dragPoint;
-        const rVal = Math.hypot(pWorld.x, pWorld.y);
-        let thetaVal = Math.atan2(pWorld.y, pWorld.x);
-        if (thetaVal < 0) thetaVal += 2*Math.PI;
-        const pCanvas = worldToCanvas(pWorld.x, pWorld.y);
-        const originCanvas = worldToCanvas(0,0);
-        pointCtx.beginPath(); pointCtx.moveTo(originCanvas.x, originCanvas.y); pointCtx.lineTo(pCanvas.x, pCanvas.y);
-        pointCtx.strokeStyle = "#e67e22"; pointCtx.lineWidth = 2.5; pointCtx.stroke();
-        pointCtx.beginPath(); pointCtx.arc(pCanvas.x, pCanvas.y, 8, 0, 2*Math.PI);
-        pointCtx.fillStyle = "#d32f2f"; pointCtx.fill();
-        const angleRadius = 40;
-        pointCtx.beginPath();
-        pointCtx.arc(originCanvas.x, originCanvas.y, angleRadius, 0, -thetaVal, true);
-        pointCtx.strokeStyle = "#1e4660"; pointCtx.lineWidth = 2; pointCtx.stroke();
-        const midAngleCanvas = -thetaVal / 2;
-        const labelX = originCanvas.x + angleRadius * 0.7 * Math.cos(midAngleCanvas);
-        const labelY = originCanvas.y + angleRadius * 0.7 * Math.sin(midAngleCanvas);
-        pointCtx.fillStyle = "#1e4660";
-        pointCtx.font = "11px monospace";
-        pointCtx.fillText(`θ = ${thetaVal.toFixed(2)} rad`, labelX-15, labelY-8);
-        pointCtx.fillText(`r = ${rVal.toFixed(3)}`, pCanvas.x+10, pCanvas.y-8);
-        document.getElementById('cartesianLine').innerHTML = `Cartesian: (${pWorld.x.toFixed(3)}, ${pWorld.y.toFixed(3)})`;
-        document.getElementById('polarLine').innerHTML = `Polar: \\(r = ${rVal.toFixed(3)}\\), \\(\\theta = ${thetaVal.toFixed(3)}\\) rad`;
-        MathJax.typesetPromise?.();
-    }
-    function setupPointDrag() {
-        function getMouseWorld(e) {
-            const rect = pointCanvas.getBoundingClientRect();
-            const scaleX = pointCanvas.width / rect.width;
-            const scaleY = pointCanvas.height / rect.height;
-            let cx, cy;
-            if (e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
-            else { cx = e.clientX; cy = e.clientY; }
-            const canvasX = (cx - rect.left) * scaleX;
-            const canvasY = (cy - rect.top) * scaleY;
-            const w = pointCanvas.width, h = pointCanvas.height;
-            const center = { x: w/2, y: h/2 };
-            const scaleCoord = Math.min(w, h) / 8.5;
-            const xw = (canvasX - center.x) / scaleCoord;
-            const yw = (center.y - canvasY) / scaleCoord;
-            return { x: Math.min(4, Math.max(-4, xw)), y: Math.min(4, Math.max(-4, yw)) };
-        }
-        pointCanvas.addEventListener('mousedown', (e) => { dragging = true; dragPoint = getMouseWorld(e); drawPointDemo(); e.preventDefault(); });
-        window.addEventListener('mousemove', (e) => { if (dragging) { dragPoint = getMouseWorld(e); drawPointDemo(); } });
-        window.addEventListener('mouseup', () => { dragging = false; });
-        pointCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); dragging = true; dragPoint = getMouseWorld(e); drawPointDemo(); });
-        pointCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (dragging) { dragPoint = getMouseWorld(e); drawPointDemo(); } });
-        pointCanvas.addEventListener('touchend', () => { dragging = false; });
-    }
-
-    // Slider and rebuild
+    // --------------------------------------------------------------
+    // Slider, resize, navigation and initialization
+    // --------------------------------------------------------------
     const nSlider = document.getElementById('nSlider');
-    function rebuildAll() {
+    const nValueLabel = document.getElementById('nValueLabel');
+
+    function rebuildFromSlider() {
+        currentN = parseInt(nSlider.value);
+        nValueLabel.innerText = currentN;
         polarCells = buildPolarCells(currentN);
-        hoverCellIdx = null; lockedCellIdx = null;
-        removeVolume();
-        refreshAllCanvasesAnd3D();
-    }
-    nSlider.addEventListener('input', (e) => { currentN = parseInt(e.target.value); nSlider.value = currentN; rebuildAll(); });
-
-    // Robust resize handler that ensures renderer size is valid
-    function handleResize() {
-        const w = container.clientWidth;
-        const h = container.clientHeight;
-        if (w > 0 && h > 0 && renderer) {
-            renderer.setSize(w, h);
-            camera.aspect = w / h;
-            camera.updateProjectionMatrix();
-        }
-        // Redraw 2D canvases even if Three.js not ready
-        drawRTGrid();
-        drawPolarGrid();
-        drawPointDemo();
-        // Force a render frame
-        if (threeInitialized) {
-            if (renderer && scene && camera) renderer.render(scene, camera);
-        }
+        lockedCellIdx = null;
+        hoverCellIdx = null;
+        refreshAll();
     }
 
-    // Animation loop
-    function animate() {
-        if (threeInitialized && controls) controls.update();
-        if (threeInitialized && renderer && scene && camera) {
-            renderer.render(scene, camera);
-        }
-        requestAnimationFrame(animate);
-    }
+    nSlider.addEventListener('input', (e) => {
+        currentN = parseInt(e.target.value);
+        nSlider.value = currentN;
+        rebuildFromSlider();
+    });
 
-    // Initialization sequence
-    function fullInit() {
-        initThree();                 // sets up Three.js and adds to DOM
+    window.addEventListener('resize', () => {
+        refreshAll();
+    });
+
+    // Navigation buttons (arithmetic based on filename)
+    function getCurrentNumber() {
+        const path = window.location.pathname;
+        const match = path.match(/(\d+)\.html$/);
+        if (match) return parseInt(match[1], 10);
+        return 20; // fallback
+    }
+    document.getElementById('prevButton').addEventListener('click', () => {
+        const cur = getCurrentNumber();
+        window.location.href = (cur - 1) + '.html';
+    });
+    document.getElementById('nextButton').addEventListener('click', () => {
+        const cur = getCurrentNumber();
+        window.location.href = (cur + 1) + '.html';
+    });
+
+    // Initialization
+    function init() {
         polarCells = buildPolarCells(currentN);
         attachCanvasEvents(rtCanvas, true);
         attachCanvasEvents(polarCanvas, false);
-        setupPointDrag();
-        rebuildAll();               // this also calls refreshAllCanvasesAnd3D and updates volume
-        handleResize();             // ensure initial sizes
-        animate();
+        rebuildFromSlider(); // draws everything + infobox
     }
 
-    // Run after DOM ready, and also on pageshow (for bfcache)
-    window.addEventListener('load', () => {
-        fullInit();
-    });
-    window.addEventListener('pageshow', (event) => {
-        if (event.persisted) {
-            // Page restored from bfcache, reinitialize Three.js and sizes
-            threeInitialized = false;
-            fullInit();
-        }
-    });
-
-    // Navigation buttons (always attach, even if Three.js fails)
-    document.getElementById('prevButton').addEventListener('click', () => {
-        window.location.href = new URL('17.html', window.location.href).href;
-    });
-    document.getElementById('nextButton').addEventListener('click', () => {
-        window.location.href = new URL('19.html', window.location.href).href;
-    });
+    init();
 </script>
 </body>
 </html>

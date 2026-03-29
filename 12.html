@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Change of Variables · Rectangles & Differentials</title>
+    <title>Multivariable Calculus · Volume & Desmos Visualization</title>
+    <!-- MathJax 3 for LaTeX rendering -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     <style>
         * {
@@ -18,13 +19,15 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
+        /* MAIN CONTENT WRAPPER — respects button exclusion zone (bottom 80px) */
         .presentation-content {
             flex: 1;
             min-height: calc(100vh - 80px);
             padding: 2rem 2rem 80px 2rem;
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             width: 100%;
             display: flex;
@@ -36,111 +39,50 @@
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(2px);
             border-radius: 2rem;
-            padding: 2rem 2rem;
+            padding: 2.5rem 3rem;
             box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255,255,255,0.5);
         }
 
-        .two-columns {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            margin-top: 0.5rem;
-        }
-        .left-panel {
-            flex: 1.2;
-            min-width: 550px;
-        }
-        .right-panel {
-            flex: 0.9;
-            min-width: 280px;
-            background: #ffffffcc;
-            border-radius: 1.5rem;
-            padding: 1.2rem 1.5rem;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(100, 100, 120, 0.2);
-        }
-
-        .graph-container {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            margin-bottom: 0.5rem;
-        }
-        canvas {
-            display: block;
-            margin: 0 auto;
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2edf2;
-            width: 100%;
-            height: auto;
-            cursor: crosshair;
-        }
-        .func-heading {
-            text-align: center;
-            font-weight: bold;
-            margin: 0.5rem 0 0.8rem 0;
-            font-size: 1.2rem;
-            background: #f5f7fe;
-            padding: 6px 12px;
-            border-radius: 40px;
-            display: inline-block;
-            width: auto;
-        }
-        .slider-panel {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1.5rem;
-            background: #f9fafc;
-            padding: 0.6rem 1.2rem;
-            border-radius: 60px;
-            margin: 0.5rem 0 1rem 0;
-            border: 1px solid #e2edf2;
-        }
-        .slider-panel label {
-            font-weight: 700;
-            color: #1e4660;
-            font-size: 0.9rem;
-        }
-        select {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 2rem;
-            padding: 0.3rem 1rem;
-            font-weight: bold;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-        .interactive-info {
-            background: #fff7e8;
-            border-left: 6px solid #f39c12;
-            border-radius: 1rem;
-            padding: 0.8rem 1rem;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        .interactive-info .math-row {
-            margin: 0.3rem 0;
-            line-height: 1.4;
-        }
-        .right-panel .text-block {
-            font-size: 1.0rem;
+        /* Font size consistent with 10.html (1.1rem desktop, 1.0rem mobile) */
+        .line {
+            font-size: 1.1rem;
             line-height: 1.55;
             margin-bottom: 1.2rem;
             font-weight: 500;
             color: #1a2c3e;
-        }
-        @media (max-width: 900px) {
-            .two-columns { flex-direction: column; }
-            .left-panel { min-width: auto; }
-            .presentation-content { padding: 1rem 1rem 80px 1rem; }
-            .content-card { padding: 1.2rem; }
+            letter-spacing: -0.01em;
         }
 
+        .line:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Desmos copy line – Arial, subtle background for clarity, no monospace */
+        .desmos-expression {
+            background: #eef2fa;
+            border-left: 4px solid #2e7d32;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-family: inherit;        /* inherits Arial from body */
+            font-size: 1.05rem;
+            line-height: 1.45;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #0a2f44;
+            margin: 0.5rem 0 0.25rem 0;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.02);
+            font-weight: 500;
+        }
+
+        /* LaTeX inline styling */
+        .latex-inline {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* --- BUTTON EXCLUSION ZONE & NAVIGATION (fixed, always visible) --- */
         .nav-controls {
             position: fixed;
             bottom: 20px;
@@ -153,6 +95,7 @@
             pointer-events: none;
             z-index: 1000;
         }
+
         .nav-btn {
             width: 140px;
             height: 50px;
@@ -164,66 +107,109 @@
             color: white;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease, background 0.2s;
             pointer-events: auto;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
         }
-        .btn-prev { background-color: #d32f2f; margin-right: auto; }
-        .btn-prev:hover { background-color: #b71c1c; }
-        .btn-next { background-color: #2e7d32; margin-left: auto; }
-        .btn-next:hover { background-color: #1b5e20; }
+
+        .btn-prev {
+            background-color: #d32f2f;
+            margin-right: auto;
+        }
+        .btn-prev:hover {
+            background-color: #b71c1c;
+        }
+
+        .btn-next {
+            background-color: #2e7d32;
+            margin-left: auto;
+        }
+        .btn-next:hover {
+            background-color: #1b5e20;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.96);
+        }
+
+        @media (max-width: 600px) {
+            .nav-btn {
+                width: 120px;
+                height: 48px;
+                font-size: 1rem;
+            }
+            .presentation-content {
+                padding: 1.5rem 1.2rem 80px 1.2rem;
+            }
+            .line {
+                font-size: 1.0rem;
+                line-height: 1.5;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
+            .desmos-expression {
+                font-size: 0.95rem;
+                padding: 0.6rem 0.9rem;
+            }
+        }
+
+        @media (max-height: 500px) {
+            .presentation-content {
+                justify-content: flex-start;
+                padding-top: 1rem;
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        strong {
+            font-weight: 700;
+            color: #0f2b3b;
+        }
+
+        a {
+            color: #1e6f5c;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(30,111,92,0.3);
+            transition: border 0.2s;
+        }
+        a:hover {
+            border-bottom-color: #1e6f5c;
+        }
     </style>
 </head>
 <body>
+
 <div class="presentation-content">
     <div class="content-card">
-        <div class="two-columns">
-            <div class="left-panel">
-                <div style="text-align: center;">
-                    <span class="func-heading">\( y = \dfrac{1}{1+x^2} \)</span>
-                </div>
-                <div class="slider-panel">
-                    <label>📐 Subintervals (n):</label>
-                    <select id="nSelect">
-                        <option value="10">n = 10</option>
-                        <option value="20" selected>n = 20</option>
-                        <option value="30">n = 30</option>
-                    </select>
-                </div>
-                <div class="graph-container">
-                    <canvas id="mainCanvas" width="800" height="620" style="width:100%; height:auto; aspect-ratio:800/620"></canvas>
-                </div>
-                <div id="rectStats" class="interactive-info">
-                    <div class="math-row" style="font-weight: bold;">📐 highlighted rectangle details</div>
-                    <div id="statsContent" class="math-row">— click or hover on a rectangle —</div>
-                </div>
-            </div>
+        <div class="line">
+            A typical query is to integrate a real function \(f(x,y)\) over some 2-D shape on the \(xy\) plane. 
+            We could consider \(\displaystyle\int_C\exp(-x^2-y^2)\,\text{d}x\,\text{d}y\), where \(C\) is a disc centred at the origin. 
+            Let's use a radius of \(\sqrt{2}\), so that \(C\) is the set of points where \(x^2+y^2\leq 2\). 
+            What does the integral mean, mathematically?
+        </div>
 
-            <!-- RIGHT PANEL: restored original text (from user's message) -->
-            <div class="right-panel">
-                <div class="text-block">
-                    We have some division of the interval \([1,\sqrt{3}]\), which we can write 
-                    \(x_0=1,x_1,x_2,...,x_{n-1},x_n=\sqrt{3}\). We can visualise the approximation of 
-                    \(\displaystyle\int_1^\sqrt{3} \dfrac{1}{1+x^2}\,\text{d}x\) as 
-                    \(\displaystyle\sum_{i=0}^{n-1}\dfrac{1}{1+x_i^2}(x_{i+1}-x_i)\). But, for whatever reason, we don't like the sub-intervals \([x_i,x_{i+1}]\). We like the sub-intervals \([u_i,u_{i+1}]\), where 
-                    \(u_i=\arctan(x_i)\) or equivalently \(x_i=\tan(u_i)\). We want to use \([u_i,u_{i+1}]\) in our summation.
-                </div>
-                <div class="text-block">
-                    However, we can't just do \(\displaystyle\sum_{i=0}^{n-1}\dfrac{1}{1+x_i^2}(u_{i+1}-u_i)\). We'd almost certainly get the wrong answer from that. Why? Because the length \((u_{i+1}-u_i)\) might not be anywhere similar to \((x_{i+1}-x_i)\). We have to account for the fact that 
-                    \(\dfrac{x_{i+1}-x_i}{u_{i+1}-u_i}\) is roughly the derivative of \(\tan(x)\) evaluated at \(u_i\), which is \(\sec^2(u_i)\).
-                </div>
-                <div class="text-block">
-                    So the integral we want is approximated by 
-                    \(\displaystyle\sum_{i=0}^{n-1}\dfrac{1}{1+x_i^2}\sec^2(u_i)(u_{i+1}-u_i)\). Again, remember that \(x_i=\tan(u_i)\). So we're really trying to compute 
-                    \(\displaystyle\int_{\pi/4}^{\pi/3} \dfrac{1}{1+\tan^2(u)}\sec^2(u)\,\text{d}u\).
-                </div>
-                <div class="text-block">
-                    Now, of course, we know that the thing in the integral is just \(1\). So the final answer is 
-                    \(\dfrac{\pi}{3}-\dfrac{\pi}{4}=\dfrac{\pi}{12}\).
-                </div>
-            </div>
+        <div class="line">
+            By the way, before we explore that, do make sure you know how to use the Desmos graphing website, 
+            by going to <a href="https://www.desmos.com/3d" target="_blank" rel="noopener noreferrer">desmos.com/3d</a> 
+            and typing in this line:
+        </div>
+
+        <!-- Exact Desmos expression with escaped angle brackets to prevent HTML misinterpretation.
+             The expression is displayed in Arial (inherited), not processed as LaTeX. -->
+        <div class="desmos-expression" data-mjx-tex="false">
+            0&lt;z&lt;\left\{x^{2}+y^{2}&lt;2\ :\ \exp\left(-x^{2}-y^{2}\right)\right\}
+        </div>
+
+        <div class="line">
+            It fills in, in solid colour, the exact volume being calculated in the integral. 
+            It looks like a flying saucer or something, with a thin circular dish at the bottom.
         </div>
     </div>
 </div>
@@ -234,446 +220,49 @@
 </div>
 
 <script>
-    (function(){
-        // ---------- Canvas and viewport ----------
-        const canvas = document.getElementById('mainCanvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 800;
-        canvas.height = 620;
-
-        // ----- View window: x from 0.5 to 2 (visible), y from -0.2 to 1.2 (comfortable) -----
-        const X_VIEW_MIN = 0.5;
-        const X_VIEW_MAX = 2.0;
-        const Y_MIN = -0.2;
-        const Y_MAX = 1.2;
-
-        // Margins (pixels)
-        const LEFT_MARGIN = 70;
-        const RIGHT_MARGIN = 70;
-        const GRAPH_TOP = 25;
-        const GRAPH_BOTTOM = 320;       // graph area ends here (pixels)
-        const U_LINE_Y = 520;            // u‑axis line far down, creating a large gap
-
-        const graphWidthPx = canvas.width - LEFT_MARGIN - RIGHT_MARGIN;
-        const scaleX = graphWidthPx / (X_VIEW_MAX - X_VIEW_MIN);   // pixels per unit (same for x and u)
-        
-        // Helper: convert world x (any real) to canvas x using the view mapping
-        function worldToCanvasX(x) {
-            return LEFT_MARGIN + (x - X_VIEW_MIN) * scaleX;
-        }
-        
-        // Convert world (x,y) to canvas coordinates (clipped to graph area)
-        function worldToCanvas(x, y) {
-            const px = worldToCanvasX(x);
-            const py = GRAPH_BOTTOM - (y - Y_MIN) * ((GRAPH_BOTTOM - GRAPH_TOP) / (Y_MAX - Y_MIN));
-            return { x: px, y: py };
-        }
-        
-        // For u‑line: u = arctan(x), we need the pixel position of u=0 (x=0) using the same scaleX.
-        // Compute pixel coordinate for x=0 in the view coordinate system.
-        const pxZero = worldToCanvasX(0);
-        
-        function uToCanvasX(u) {
-            return pxZero + u * scaleX;
-        }
-        
-        // ---------- Math constants ----------
-        const SQRT3 = Math.sqrt(3);
-        const A = 1, B = SQRT3;               // integration bounds in x
-        const U_A = Math.atan(1);              // π/4
-        const U_B = Math.atan(SQRT3);          // π/3
-        const ARCTAN3 = Math.atan(3);
-        
-        function f(x) { return 1 / (1 + x*x); }
-        
-        // ---------- Rectangle data ----------
-        function computeXNodes(n) {
-            const nodes = new Array(n+1);
-            const step = (B - A) / n;
-            for (let i = 0; i <= n; i++) nodes[i] = A + i * step;
-            return nodes;
-        }
-        
-        function getRectIndexFromX(xWorld, n, xNodes) {
-            if (xWorld < A || xWorld > B) return null;
-            for (let i = 0; i < n; i++) {
-                if (xWorld >= xNodes[i] && xWorld <= xNodes[i+1]) return i;
-            }
-            return null;
-        }
-        
-        // ---------- Drawing routines (all respect viewport) ----------
-        function drawGridAndAxes() {
-            ctx.save();
-            ctx.strokeStyle = "#cbd5e1";
-            ctx.lineWidth = 0.6;
-            ctx.fillStyle = "#1e293b";
-            ctx.font = "11px 'Arial', sans-serif";
-            
-            // Vertical grid lines at visible x positions
-            for (let x = 0.5; x <= 2.0; x += 0.25) {
-                const px = worldToCanvasX(x);
-                if (px >= LEFT_MARGIN && px <= canvas.width - RIGHT_MARGIN) {
-                    ctx.beginPath(); ctx.moveTo(px, GRAPH_TOP); ctx.lineTo(px, GRAPH_BOTTOM);
-                    ctx.strokeStyle = "#e2e8f0"; ctx.stroke();
-                    ctx.fillStyle = "#334155";
-                    ctx.fillText(x.toFixed(2), px-8, GRAPH_BOTTOM+12);
-                }
-            }
-            // Horizontal grid
-            for (let y = -0.2; y <= 1.2; y += 0.2) {
-                const py = GRAPH_BOTTOM - (y - Y_MIN) * ((GRAPH_BOTTOM - GRAPH_TOP) / (Y_MAX - Y_MIN));
-                if (py >= GRAPH_TOP && py <= GRAPH_BOTTOM) {
-                    ctx.beginPath(); ctx.moveTo(LEFT_MARGIN, py); ctx.lineTo(canvas.width - RIGHT_MARGIN, py);
-                    ctx.strokeStyle = "#e2e8f0"; ctx.stroke();
-                    ctx.fillStyle = "#334155";
-                    ctx.fillText(y.toFixed(1), LEFT_MARGIN-28, py+3);
-                }
-            }
-            // Axes lines (x‑axis at y=0, y‑axis at x=0, but x=0 may be off-screen; we draw only visible part)
-            const yZero = worldToCanvas(0,0).y;
-            ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = "#1e293b";
-            ctx.moveTo(LEFT_MARGIN, yZero); ctx.lineTo(canvas.width - RIGHT_MARGIN, yZero); ctx.stroke();
-            const xZeroPx = worldToCanvasX(0);
-            if (xZeroPx >= LEFT_MARGIN && xZeroPx <= canvas.width - RIGHT_MARGIN) {
-                ctx.beginPath(); ctx.moveTo(xZeroPx, GRAPH_TOP); ctx.lineTo(xZeroPx, GRAPH_BOTTOM); ctx.stroke();
-            }
-            // x‑axis label: twice as big and with offset so it doesn't touch the axis line
-            ctx.fillStyle = "#1e4660";
-            ctx.font = "bold 20px 'Arial'";          // doubled from ~10px to 20px
-            // place it slightly below the axis line (yZero + 20) and to the right
-            ctx.fillText("x", canvas.width - RIGHT_MARGIN + 8, yZero + 18);
-            ctx.restore();
-        }
-        
-        function drawCurve() {
-            ctx.beginPath(); ctx.lineWidth = 2.8; ctx.strokeStyle = "#d32f2f";
-            let first = true;
-            const steps = 400;
-            for (let i = 0; i <= steps; i++) {
-                const x = X_VIEW_MIN + (i / steps) * (X_VIEW_MAX - X_VIEW_MIN);
-                const y = f(x);
-                const { x: px, y: py } = worldToCanvas(x, y);
-                if (py < GRAPH_TOP-10 || py > GRAPH_BOTTOM+10) { first = true; continue; }
-                if (first) { ctx.moveTo(px, py); first = false; }
-                else ctx.lineTo(px, py);
-            }
-            ctx.stroke();
-        }
-        
-        function drawShadedArea() {
-            const steps = 200;
-            const step = (B - A) / steps;
-            ctx.beginPath();
-            let first = true;
-            for (let i = 0; i <= steps; i++) {
-                const x = A + i * step;
-                const y = f(x);
-                const { x: px, y: py } = worldToCanvas(x, y);
-                if (first) { ctx.moveTo(px, py); first = false; }
-                else ctx.lineTo(px, py);
-            }
-            const pRight = worldToCanvas(B, 0);
-            const pLeft = worldToCanvas(A, 0);
-            ctx.lineTo(pRight.x, pRight.y);
-            ctx.lineTo(pLeft.x, pLeft.y);
-            ctx.closePath();
-            ctx.fillStyle = "rgba(46,125,50,0.25)";
-            ctx.fill();
-            ctx.strokeStyle = "#2e7d32";
-            ctx.lineWidth = 1.2;
-            ctx.stroke();
-        }
-        
-        function drawRectangles(n, xNodes, activeIdx) {
-            for (let i = 0; i < n; i++) {
-                const xL = xNodes[i];
-                const xR = xNodes[i+1];
-                const height = f(xL);
-                const { x: pxL, y: yTop } = worldToCanvas(xL, height);
-                const { x: pxR, y: yBase } = worldToCanvas(xR, 0);
-                const rectX = pxL, rectW = pxR - pxL, rectY = Math.min(yTop, yBase), rectH = Math.abs(yBase - yTop);
-                if (rectW <= 0) continue;
-                let fillColor = "rgba(54, 162, 235, 0.4)";
-                let strokeColor = "#1e6f9f";
-                if (activeIdx === i) {
-                    fillColor = "rgba(230, 126, 34, 0.8)";
-                    strokeColor = "#e67e22";
-                }
-                ctx.fillStyle = fillColor;
-                ctx.fillRect(rectX, rectY, rectW, rectH);
-                ctx.strokeStyle = strokeColor;
-                ctx.lineWidth = (activeIdx === i) ? 2.5 : 1;
-                ctx.strokeRect(rectX, rectY, rectW, rectH);
-            }
-        }
-        
-        function drawLineSegmentAndU() {
-            ctx.beginPath();
-            ctx.lineWidth = 2.5;
-            ctx.strokeStyle = "#2c5e66";
-            const uStartPx = uToCanvasX(0);
-            const uEndPx = uToCanvasX(ARCTAN3);
-            // draw only within canvas bounds
-            const startX = Math.max(LEFT_MARGIN - 10, uStartPx);
-            const endX = Math.min(canvas.width - RIGHT_MARGIN + 10, uEndPx);
-            if (startX < endX) {
-                ctx.moveTo(startX, U_LINE_Y);
-                ctx.lineTo(endX, U_LINE_Y);
-                ctx.stroke();
-            }
-            // ticks every 0.1 rad
-            for (let u = 0; u <= ARCTAN3 + 0.01; u += 0.1) {
-                const px = uToCanvasX(u);
-                if (px >= LEFT_MARGIN - 15 && px <= canvas.width - RIGHT_MARGIN + 15) {
-                    ctx.beginPath(); ctx.moveTo(px, U_LINE_Y-5); ctx.lineTo(px, U_LINE_Y+5); ctx.stroke();
-                    ctx.fillStyle = "#2c3e66"; ctx.font = "9px monospace";
-                    ctx.fillText(u.toFixed(2), px-10, U_LINE_Y-7);
-                }
-            }
-            ctx.fillStyle = "#1e4660";
-            ctx.font = "bold 12px 'Arial'";
-            ctx.fillText("u", uEndPx + 6, U_LINE_Y + 3);
-        }
-        
-        function highlightSubinterval(uLeft, uRight) {
-            const pxL = uToCanvasX(uLeft);
-            const pxR = uToCanvasX(uRight);
-            if (pxR < LEFT_MARGIN-20 || pxL > canvas.width-RIGHT_MARGIN+20) return;
-            ctx.beginPath();
-            ctx.lineWidth = 14;
-            ctx.strokeStyle = "#f7b773";
-            ctx.moveTo(pxL, U_LINE_Y);
-            ctx.lineTo(pxR, U_LINE_Y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.lineWidth = 2.5;
-            ctx.strokeStyle = "#e67e22";
-            ctx.moveTo(pxL, U_LINE_Y);
-            ctx.lineTo(pxR, U_LINE_Y);
-            ctx.stroke();
-        }
-        
-        function drawConnectingLines(xL, xR, uL, uR) {
-            const p1Start = worldToCanvas(xL, 0);
-            const p1End = { x: uToCanvasX(uL), y: U_LINE_Y };
-            const p2Start = worldToCanvas(xR, 0);
-            const p2End = { x: uToCanvasX(uR), y: U_LINE_Y };
-            ctx.beginPath(); ctx.moveTo(p1Start.x, p1Start.y); ctx.lineTo(p1End.x, p1End.y);
-            ctx.strokeStyle = "#f39c12"; ctx.lineWidth = 1.8; ctx.setLineDash([6, 5]); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(p2Start.x, p2Start.y); ctx.lineTo(p2End.x, p2End.y);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
-        
-        // Draw two custom arrows in the gap (left and right) using canvas
-        function drawArrowsInGap() {
-            // Choose x positions for the arrows: left arrow near x = 0.7, right arrow near x = 1.8 (in world x)
-            const leftWorldX = 0.7;
-            const rightWorldX = 1.8;
-            const arrowBaseY = (GRAPH_BOTTOM + U_LINE_Y) / 2;  // vertically centered in gap
-            
-            // Down arrow (left side) – pointing downward
-            const leftPx = worldToCanvasX(leftWorldX);
-            drawArrow(ctx, leftPx, arrowBaseY, 'down', "#1e4660");
-            // Increase font size for labels and shift them to avoid touching arrows
-            ctx.font = "bold 18px 'Arial'";          // twice as big as original (was ~9-10px)
-            ctx.fillStyle = "#1e4660";
-            ctx.shadowBlur = 0;
-            // Place text further away from arrow: shift down a bit more
-            ctx.fillText("u = arctan(x)", leftPx - 58, arrowBaseY - 18);
-            
-            // Up arrow (right side) – pointing upward
-            const rightPx = worldToCanvasX(rightWorldX);
-            drawArrow(ctx, rightPx, arrowBaseY, 'up', "#1e4660");
-            ctx.fillText("x = tan(u)", rightPx - 48, arrowBaseY + 38);
-        }
-        
-        function drawArrow(ctx, x, y, direction, color) {
-            ctx.save();
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.lineWidth = 2.5;
-            const size = 24;
-            const stemLen = 30;
-            if (direction === 'down') {
-                // stem
-                ctx.beginPath();
-                ctx.moveTo(x, y - stemLen/2);
-                ctx.lineTo(x, y + stemLen/2);
-                ctx.stroke();
-                // arrowhead
-                ctx.beginPath();
-                ctx.moveTo(x - size/3, y + stemLen/2 - size/3);
-                ctx.lineTo(x, y + stemLen/2);
-                ctx.lineTo(x + size/3, y + stemLen/2 - size/3);
-                ctx.fill();
-            } else if (direction === 'up') {
-                ctx.beginPath();
-                ctx.moveTo(x, y + stemLen/2);
-                ctx.lineTo(x, y - stemLen/2);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(x - size/3, y - stemLen/2 + size/3);
-                ctx.lineTo(x, y - stemLen/2);
-                ctx.lineTo(x + size/3, y - stemLen/2 + size/3);
-                ctx.fill();
-            }
-            ctx.restore();
-        }
-        
-        function updateStatsBox(idx, n, xNodes) {
-            if (idx === null || n === 0) {
-                document.getElementById('statsContent').innerHTML = '— click or hover on a rectangle —';
-                if (window.MathJax) MathJax.typesetPromise([document.getElementById('statsContent')]);
-                return;
-            }
-            const x_i = xNodes[idx];
-            const x_ip1 = xNodes[idx+1];
-            const u_i = Math.atan(x_i);
-            const u_ip1 = Math.atan(x_ip1);
-            const deltaX = x_ip1 - x_i;
-            const deltaU = u_ip1 - u_i;
-            const ratio = deltaX / deltaU;
-            const sec2 = 1 + x_i * x_i;
-            const content = `
-                <div class="math-row">\\( \\dfrac{x_{i+1}-x_i}{u_{i+1}-u_i} = ${ratio.toFixed(5)} \\)</div>
-                <div class="math-row">\\( \\sec^2(u_i) = ${sec2.toFixed(5)} \\)</div>
-                <div class="math-row">\\( \\Delta x = ${deltaX.toFixed(5)},\\; \\Delta u = ${deltaU.toFixed(5)}\\)</div>
-            `;
-            document.getElementById('statsContent').innerHTML = content;
-            if (window.MathJax) MathJax.typesetPromise([document.getElementById('statsContent')]);
-        }
-        
-        // ---------- State and interaction ----------
-        let currentN = 20;
-        let activeIndex = null;
-        let lockedIndex = null;
-        let xNodesCache = computeXNodes(currentN);
-        
-        function redrawAll() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawGridAndAxes();
-            drawShadedArea();
-            drawCurve();
-            drawRectangles(currentN, xNodesCache, (lockedIndex !== null ? lockedIndex : activeIndex));
-            drawLineSegmentAndU();
-            drawArrowsInGap();   // placed in the gap between graph and u-line
-            
-            const displayIdx = (lockedIndex !== null) ? lockedIndex : activeIndex;
-            if (displayIdx !== null && currentN > 0 && displayIdx >= 0 && displayIdx < currentN) {
-                const xL = xNodesCache[displayIdx];
-                const xR = xNodesCache[displayIdx+1];
-                const uL = Math.atan(xL);
-                const uR = Math.atan(xR);
-                highlightSubinterval(uL, uR);
-                drawConnectingLines(xL, xR, uL, uR);
-                updateStatsBox(displayIdx, currentN, xNodesCache);
-            } else {
-                updateStatsBox(null, currentN, xNodesCache);
-            }
-        }
-        
-        function setN(nVal) {
-            currentN = nVal;
-            xNodesCache = computeXNodes(currentN);
-            activeIndex = null;
-            lockedIndex = null;
-            redrawAll();
-        }
-        
-        // ---- Mouse interaction (converted to view x) ----
-        function getWorldFromMouse(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleCanvasX = canvas.width / rect.width;
-            const scaleCanvasY = canvas.height / rect.height;
-            let clientX, clientY;
-            if (e.touches) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-            const canvasX = (clientX - rect.left) * scaleCanvasX;
-            const worldX = X_VIEW_MIN + (canvasX - LEFT_MARGIN) / scaleX;
-            return { x: worldX, y: 0 };
-        }
-        
-        function onCanvasMove(e) {
-            if (lockedIndex !== null) return;
-            const { x: worldX } = getWorldFromMouse(e);
-            const newIdx = getRectIndexFromX(worldX, currentN, xNodesCache);
-            if (newIdx !== activeIndex) {
-                activeIndex = newIdx;
-                redrawAll();
-            }
-        }
-        
-        function onCanvasClick(e) {
-            const { x: worldX } = getWorldFromMouse(e);
-            const newIdx = getRectIndexFromX(worldX, currentN, xNodesCache);
-            if (newIdx !== null) {
-                lockedIndex = newIdx;
-                activeIndex = null;
-            } else {
-                lockedIndex = null;
-                activeIndex = null;
-            }
-            redrawAll();
-        }
-        
-        function onCanvasLeave() {
-            if (lockedIndex === null) {
-                activeIndex = null;
-                redrawAll();
-            }
-        }
-        
-        function globalUnlock(e) {
-            if (!canvas.contains(e.target)) {
-                if (lockedIndex !== null) {
-                    lockedIndex = null;
-                    activeIndex = null;
-                    redrawAll();
-                }
-            }
-        }
-        
-        function initInteraction() {
-            canvas.addEventListener('mousemove', onCanvasMove);
-            canvas.addEventListener('click', onCanvasClick);
-            canvas.addEventListener('mouseleave', onCanvasLeave);
-            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onCanvasMove(e); });
-            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onCanvasClick(e); });
-            window.addEventListener('click', globalUnlock);
-        }
-        
-        const nSelect = document.getElementById('nSelect');
-        nSelect.addEventListener('change', (e) => {
-            const newN = parseInt(e.target.value, 10);
-            setN(newN);
-            lockedIndex = null;
-            activeIndex = null;
-        });
-        
-        setN(20);
-        initInteraction();
-        
-        // Navigation (filename arithmetic)
+    // --------------------------------------------------------------
+    //  PURE ARITHMETIC NAVIGATION (numeric filenames)
+    //  Based strictly on current file number ± 1 → target.html
+    //  Buttons always visible; no boundary checks, no hiding.
+    // --------------------------------------------------------------
+    (function() {
         function getCurrentNumber() {
             const path = window.location.pathname;
             const filename = path.substring(path.lastIndexOf('/') + 1);
             const match = filename.match(/^(\d+)\.html$/);
-            return match ? parseInt(match[1], 10) : null;
+            if (match && match[1]) {
+                return parseInt(match[1], 10);
+            }
+            return null;
         }
-        const currNum = getCurrentNumber();
-        document.getElementById('prevButton').addEventListener('click', () => {
-            if (currNum !== null) window.location.href = (currNum - 1) + '.html';
-        });
-        document.getElementById('nextButton').addEventListener('click', () => {
-            if (currNum !== null) window.location.href = (currNum + 1) + '.html';
-        });
+
+        const currentNum = getCurrentNumber();
+        const prevBtn = document.getElementById('prevButton');
+        const nextBtn = document.getElementById('nextButton');
+
+        function goToSlide(targetNumber) {
+            if (targetNumber !== null && !isNaN(targetNumber)) {
+                window.location.href = targetNumber + '.html';
+            }
+        }
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (currentNum !== null) {
+                    goToSlide(currentNum - 1);
+                }
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (currentNum !== null) {
+                    goToSlide(currentNum + 1);
+                }
+            });
+        }
     })();
 </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Double integrals · Riemann sums · Disc‑only surface & adaptive grid</title>
+    <title>Double integrals · Polar coordinates · Riemann sums on a disc</title>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     <script type="importmap">
         {
@@ -52,40 +52,59 @@
             color: #1a2c3e;
             margin-bottom: 1.5rem;
         }
-        .graphs-row {
+        /* Two‑column layout for the first row (point demo) */
+        .first-row {
             display: flex;
             flex-wrap: wrap;
             gap: 2rem;
             margin: 1.8rem 0 1rem 0;
             justify-content: center;
         }
+        .first-row .text-col {
+            flex: 1;
+            min-width: 280px;
+        }
+        .first-row .demo-col {
+            flex: 0.8;
+            min-width: 320px;
+        }
+        /* Graphs below – adjust alignment and column widths */
+        .graphs-below {
+            margin-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            align-items: center;   /* vertical centering: left graph aligns with middle of right stack */
+        }
         .left-stack {
-            flex: 1.2;
+            flex: 1.4;
             min-width: 380px;
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
         .right-stack {
-            flex: 0.9;
-            min-width: 380px;
+            flex: 0.65;           /* narrower column – makes both right graphs smaller */
+            min-width: 340px;
             display: flex;
             flex-direction: column;
+            gap: 1rem;
         }
         .graph-panel {
             background: #ffffffdd;
             border-radius: 28px;
-            padding: 1.2rem;
+            padding: 0.7rem 0.9rem;   /* slightly reduced padding */
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
             transition: all 0.1s ease;
         }
         .func-heading {
             text-align: center;
             font-weight: bold;
-            margin-bottom: 12px;
-            font-size: 1.3rem;
+            margin-bottom: 10px;
+            font-size: 1rem;          /* smaller heading to save space */
             background: #f0f4fe;
-            padding: 8px 0;
+            padding: 5px 0;
             border-radius: 40px;
             letter-spacing: 0.2px;
             color: #1e4660;
@@ -127,21 +146,34 @@
             border-radius: 24px;
             overflow: hidden;
             border: 1px solid #e2e8f0;
-            margin-top: 12px;
+            margin-top: 6px;
         }
-        #gridCanvas {
+        canvas {
+            display: block;
             width: 100%;
             height: auto;
+            cursor: pointer;
+        }
+        #polarCanvas {
             aspect-ratio: 1 / 1;
             background: #fef9ef;
-            cursor: pointer;
-            display: block;
+        }
+        #rtCanvas {
+            aspect-ratio: 600 / 420;
+            background: #fefaf0;
+        }
+        #pointCanvas {
+            aspect-ratio: 1 / 1;
+            background: #fefefa;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            width: 100%;
         }
         .slider-area {
             background: #f1f5f9;
             border-radius: 48px;
-            padding: 0.6rem 1.2rem;
-            margin-bottom: 1rem;
+            padding: 0.4rem 1rem;
+            margin-bottom: 0.8rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -151,37 +183,39 @@
         .slider-label {
             font-weight: 600;
             color: #1e4660;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
         input[type="range"] {
             flex: 2;
-            min-width: 160px;
-            height: 6px;
+            min-width: 140px;
+            height: 5px;
             border-radius: 10px;
             background: #cbd5e1;
         }
-        .delta-value {
+        .n-value {
             background: #2c3e66;
             color: white;
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 32px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-family: monospace;
             font-weight: bold;
         }
-        .info-note {
-            background: #f1f5f9;
+        .coord-panel {
+            background: #eef2ff;
             border-radius: 20px;
-            padding: 0.7rem 1rem;
-            margin-top: 1rem;
-            font-size: 0.85rem;
+            padding: 8px 12px;
+            margin-top: 8px;
             text-align: center;
-            color: #2c3e66;
+            font-family: monospace;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #0f2b3d;
         }
         .fig-caption {
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             color: #4a627a;
-            margin-top: 0.6rem;
+            margin-top: 0.5rem;
             text-align: center;
             font-style: italic;
         }
@@ -190,8 +224,8 @@
             .content-card { padding: 1.2rem; }
             .text-block { font-size: 1rem; }
             .info-overlay { font-size: 0.75rem; padding: 8px 12px; white-space: normal; }
+            .right-stack { flex: 0.8; min-width: 280px; }
         }
-        /* navigation fixed buttons (exclusion zone) */
         .nav-controls {
             position: fixed;
             bottom: 20px;
@@ -229,67 +263,93 @@
         @media (max-width: 600px) {
             .nav-btn { width: 120px; height: 48px; font-size: 1rem; }
         }
-        hr { margin: 0.5rem 0; }
     </style>
 </head>
 <body>
 <div class="presentation-content">
     <div class="content-card">
-        <div class="text-block">
-            Just as \(\displaystyle\int_{[a,b]}f(x)\,\text{d}x\) divides the interval into little sub‑intervals, multiplies the length of the sub‑interval by some value of the function, and then adds up the rectangular areas,
-        </div>
-        <div class="text-block">
-            so \(\displaystyle\int_C f(x,y)\,\text{d}x\,\text{d}y\) divides \(C\) into little squares, multiplies the area of each sub‑square by some value of the function, and then adds up the volumes of the cuboids.
+        <!-- First row: text on left, point demo on right -->
+        <div class="first-row">
+<div class="text-col">
+    <div class="text-block">
+        These shapes are inspired by polar coordinates. Presumably you've seen this in high school. To jog your memory, I have a graph to the right of this paragraph, where you can drag the point \(P\) around and observe how the coordinates change.
+    </div>
+    <div class="text-block">
+        You've also probably seen the formula for \(x\) and \(y\) in terms of \(r\) and \(\theta\). As a reminder, it is \(x=r\cos(\theta)\) and \(y=r\sin(\theta)\).
+    </div>
+</div>
+            <div class="demo-col">
+                <div class="graph-panel">
+                    <div class="func-heading">📌 Click, hold and move point \(P\): polar coordinates demo</div>
+                    <canvas id="pointCanvas" width="500" height="500" style="width:100%; aspect-ratio:1/1; border-radius:20px; background:#fefefa;"></canvas>
+                    <div class="coord-panel" id="coordDisplay">
+                        <div id="cartesianLine">Cartesian: (0.00, 0.00)</div>
+                        <div id="polarLine">Polar: \(r = 0.00\), \(\theta = 0.00\) rad</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="text-block">
-            Now, if you're mathematically careful (which you should be),
-            you might have questions in your head as to
-            <ul style="margin: 0.6rem 0 0.2rem 1.5rem; line-height: 1.4;">
-                <li>which precise value of \(f\) to choose for each of the sub‑squares (because \(f\) is not constant over the sub‑square)</li>
-                <li>what if the finite collection of squares we use in each division isn't exactly a circular disc (which it can't be).</li>
-            </ul>
+        <!-- All the explanatory text (continues after the first row) -->
+        <div class="text-block" style="margin-top:1rem;">
+            Remember, the disc \(C\) is the set of every point on the \(xy\) plane with radius at most \(\sqrt{2}\). Therefore, in polar coordinates, we can represent \(C\) as those points where the radius lies in \([0,\sqrt{2}]\) and angle in \([0,2\pi)\).
         </div>
         <div class="text-block">
-            But Riemann proved that it doesn't matter. As long as we arrange the divisions so that a division has all squares having side less than \(\epsilon\) and we take \(\epsilon\) to \(0\), and as long as in each division the squares at least cover the whole disc, and as long as the overspill area (the area of the combined squares in each division that is beyond the disc) goes to \(0\) too as we move to finer and finer divisions, then for a continuous function like \(f(x,y)\) this process must tend to the same unique limit.
+            We could "draw" the points of \(C\) on a \(r\theta\) graph, even though that isn't really where the points of \(C\) are - it's just a representation. We could imagine a \(r\)-axis as an interval from \(0\) to \(\sqrt{2}\), and a \(\theta\)-axis as an interval from \(0\) to \(2\pi\). We could then divide both axes into \(n\) equal pieces and look at the little rectangles.
         </div>
         <div class="text-block">
-            You can move the slider above the graph for \(C\).
+            Each of the new C-shapes, little pieces of rings inside \(C\), is for the actual \(xy\) graph (the lower right) what's represented by a small rectangle on the "pretend" \(r\theta\) graph (the upper right).
+        </div>
+        <div class="text-block">
+            Have a look at the three graphs on the bottom. Use the slider to change the width or narrowness of the area division. Click on any C-shape or rectangle. The thin volumes on the left still have as their base the C-shapes on the actual \(xy\) graph, not the rectangular representation.
         </div>
 
-        <div class="graphs-row">
-            <!-- LEFT COLUMN: 3D graph + info overlay (surface only on disc) -->
+        <!-- Below all text: the three remaining graphs in a two‑column layout, vertically aligned -->
+        <div class="graphs-below">
+            <!-- LEFT COLUMN: 3D surface over disc -->
             <div class="left-stack">
                 <div class="graph-panel">
                     <div class="func-heading">\( f(x,y) = e^{-x^{2}-y^{2}} \) on \(x^2+y^2\le 2\)</div>
                     <div class="three-container" id="threeContainer">
                         <div id="integralInfoBox" class="info-overlay">
-                            <p>📐 <strong>Riemann estimate</strong> (<span id="deltaDisplay">0.20</span>) : <span id="estimateValue">2.3710</span></p>
+                            <p>📐 <strong>Riemann estimate</strong>: <span id="estimateValue">2.4102</span></p>
                             <p>🎯 <strong>Exact integral</strong> : \(2.7164\)</p>
                         </div>
                     </div>
                     <div class="fig-caption">
-                        🖱️ Drag to rotate · Right‑click to pan · Scroll to zoom · Translucent surface (only over the disc)<br>
-                        🔴 Red cuboid = volume element (height = \(e^{-\min(2,\; \max(x^2+y^2)\text{ on square})}\))
+                        🖱️ Drag to rotate · Right‑click to pan · Scroll to zoom · Translucent surface<br>
+                        🔴 Red = volume element (height = \(e^{-m^2}\) where \(m\) = max radius in shape)
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: C graph + slider -->
+            <!-- RIGHT COLUMN: rθ grid and polar grid stacked (smaller) -->
             <div class="right-stack">
-                <div class="graph-panel" style="padding-bottom: 0.8rem;">
-                    <div class="func-heading">\( C = \{(x,y): x^{2}+y^{2} \le 2\} \)</div>
+                <!-- Panel 2: rθ parameter space (rectangular grid) -->
+                <div class="graph-panel">
+                    <div class="func-heading">\(r\theta\)-plane: parameters \((r,\theta)\) &nbsp; \(r\in[0,\sqrt{2}],\; \theta\in[0,2\pi)\)</div>
+                    <div class="grid-canvas-container">
+                        <canvas id="rtCanvas" width="600" height="420" style="width:100%; height:auto; aspect-ratio:600/420; background:#fefaf0;"></canvas>
+                    </div>
+                    <div class="fig-caption">
+                        🟨 Hover/click → highlights matching polar cell & 3D volume
+                    </div>
+                </div>
+
+                <!-- Panel 3: polar grid (annular sectors) with clear xy axes -->
+                <div class="graph-panel">
+                    <div class="func-heading">\( C = \{(x,y): x^{2}+y^{2} \le 2\} \) &nbsp; polar cells</div>
                     <div class="slider-area">
-                        <span class="slider-label">🔘 Grid step Δ = </span>
-                        <input type="range" id="deltaSlider" min="0.05" max="0.2" step="0.01" value="0.2">
-                        <span id="deltaValueLabel" class="delta-value">0.20</span>
+                        <span class="slider-label">🌀 n = </span>
+                        <input type="range" id="nSlider" min="5" max="25" step="5" value="5">
+                        <span id="nValueLabel" class="n-value">5</span>
                     </div>
                     <div class="grid-canvas-container">
-                        <canvas id="gridCanvas" width="600" height="600" style="width:100%; height:auto; aspect-ratio:1/1"></canvas>
+                        <canvas id="polarCanvas" width="600" height="600" style="width:100%; height:auto; aspect-ratio:1/1; background:#fef9ef;"></canvas>
                     </div>
-                    <div class="info-note">
-                        ✨ <strong>Hover</strong> over any square that intersects the disc → red cuboid appears in 3D view.<br>
-                        🖱️ <strong>Click</strong> a square to lock the cuboid; click elsewhere (empty area, 2D graph, or 3D view) to unlock.
+                    <div class="fig-caption">
+                        🟠 Hover/click → highlights matching \(r\theta\) rectangle & 3D volume<br>
+                        📐 Solid axes: \(x\) (right) and \(y\) (up) extend beyond the disc
                     </div>
                 </div>
             </div>
@@ -307,498 +367,613 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     // --------------------------------------------------------------
-    // 1. CONSTANTS & GLOBALS
+    // 1. Safe setup with error handling and bfcache support
     // --------------------------------------------------------------
-    const DISC_RADIUS = Math.sqrt(2);      // x^2+y^2 <= 2
-    const WORLD_MIN = -2.2;
-    const WORLD_MAX = 2.2;
-    
-    const ESTIMATE_MAP = {
-        0.2: 2.371,
-        0.1: 2.5383,
-        0.05: 2.6264
-    };
-    
-    let currentDelta = 0.2;
-    let interactiveSquares = [];
-    let hoverSquareIdx = null;
-    let lockedSquareIdx = null;
-    
-    // Three.js globals
     const container = document.getElementById('threeContainer');
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xfefef7);
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    camera.position.set(3.2, 2.8, 4.2);
-    camera.lookAt(0, 0, 0);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    container.appendChild(renderer.domElement);
-    
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.rotateSpeed = 1.2;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
-    
-    // lighting
-    const ambientLight = new THREE.AmbientLight(0x404060);
-    scene.add(ambientLight);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-    dirLight.position.set(2, 5, 3);
-    scene.add(dirLight);
-    const backLight = new THREE.PointLight(0xccaa88, 0.4);
-    backLight.position.set(-2, 1, -3);
-    scene.add(backLight);
-    const fillLight = new THREE.PointLight(0xaaccff, 0.3);
-    fillLight.position.set(1, 2, 2);
-    scene.add(fillLight);
-    
-    const gridHelper = new THREE.GridHelper(5, 20, 0x888888, 0xbbbbbb);
-    gridHelper.position.y = -0.05;
-    scene.add(gridHelper);
-    
-    // --------------------------------------------------------------
-    // 2. Surface geometry restricted to the disc x²+z² ≤ 2
-    // --------------------------------------------------------------
-    const R = DISC_RADIUS;
-    const segments = 90;          // resolution for smooth disc surface
-    const step = (2 * R) / segments;
-    const startCoord = -R;
-    
-    // Helper: check if point (x,z) is inside disc
-    function insideDisc(x, z) {
-        return (x*x + z*z) <= R*R + 1e-9;
-    }
-    
-    // Build vertex grid (only points inside disc)
-    const vertices = [];
-    const indexMap = []; // 2D grid mapping [i][j] -> vertex index or -1
-    const rows = segments + 1;
-    const cols = segments + 1;
-    
-    // Initialize map with -1
-    for (let i = 0; i <= segments; i++) {
-        indexMap[i] = [];
-        for (let j = 0; j <= segments; j++) {
-            indexMap[i][j] = -1;
-        }
-    }
-    
-    // First pass: create vertices for points inside disc
-    for (let i = 0; i <= segments; i++) {
-        const x = startCoord + i * step;
-        for (let j = 0; j <= segments; j++) {
-            const z = startCoord + j * step;
-            if (insideDisc(x, z)) {
-                const yVal = Math.exp(-(x*x + z*z));
-                vertices.push(x, yVal, z);
-                indexMap[i][j] = vertices.length / 3 - 1;
-            }
-        }
-    }
-    
-    // Build indices: for each cell where all four corners exist
-    const indices = [];
-    for (let i = 0; i < segments; i++) {
-        for (let j = 0; j < segments; j++) {
-            const i00 = indexMap[i][j];
-            const i10 = indexMap[i+1][j];
-            const i01 = indexMap[i][j+1];
-            const i11 = indexMap[i+1][j+1];
-            if (i00 !== -1 && i10 !== -1 && i01 !== -1 && i11 !== -1) {
-                // two triangles per cell
-                indices.push(i00, i10, i01);
-                indices.push(i10, i11, i01);
-            }
-        }
-    }
-    
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();  // for proper lighting
-    
-    const material = new THREE.MeshPhongMaterial({
-        color: 0x3a86ff,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.7,
-        emissive: 0x001133,
-        shininess: 65
-    });
-    const surfaceMesh = new THREE.Mesh(geometry, material);
-    scene.add(surfaceMesh);
-    
-    // Optional wireframe overlay (only over disc geometry)
-    const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x2266aa, wireframe: true, transparent: true, opacity: 0.2 });
-    const wireframeMesh = new THREE.Mesh(geometry, wireframeMat);
-    scene.add(wireframeMesh);
-    
-    // Add a faint circle outline on the ground to emphasize disc boundary
-    const circlePoints = [];
-    const circleSegments = 80;
-    for (let i = 0; i <= circleSegments; i++) {
-        const angle = (i / circleSegments) * Math.PI * 2;
-        const x = R * Math.cos(angle);
-        const z = R * Math.sin(angle);
-        circlePoints.push(new THREE.Vector3(x, -0.045, z));
-    }
-    const circleGeo = new THREE.BufferGeometry().setFromPoints(circlePoints);
-    const circleMat = new THREE.LineBasicMaterial({ color: 0x2c5282, linewidth: 1 });
-    const circleOutline = new THREE.LineLoop(circleGeo, circleMat);
-    scene.add(circleOutline);
-    
-    // --------------------------------------------------------------
-    // 3. Red cuboid logic (same as before, height rule unchanged)
-    // --------------------------------------------------------------
-    let currentCuboid = null;
-    function removeCuboid() {
-        if (currentCuboid) { scene.remove(currentCuboid); currentCuboid = null; }
-    }
-    
-    function computeCuboidHeight(sq) {
-        const maxX2 = Math.max(sq.x0 * sq.x0, sq.x1 * sq.x1);
-        const maxY2 = Math.max(sq.y0 * sq.y0, sq.y1 * sq.y1);
-        let maxSq = maxX2 + maxY2;
-        let m = Math.min(2.0, maxSq);
-        return Math.exp(-m);
-    }
-    
-    function updateCuboidFromSquare(sq) {
-        if (!sq) return false;
-        const height = computeCuboidHeight(sq);
-        if (height <= 0.001) return false;
-        const width = sq.x1 - sq.x0;
-        const depth = sq.y1 - sq.y0;
-        const centerX = (sq.x0 + sq.x1) / 2;
-        const centerZ = (sq.y0 + sq.y1) / 2;
-        const geometryBox = new THREE.BoxGeometry(width, height, depth);
-        const materialBox = new THREE.MeshStandardMaterial({ color: 0xdc2626, emissive: 0x440000, roughness: 0.3, metalness: 0.1 });
-        const box = new THREE.Mesh(geometryBox, materialBox);
-        box.position.set(centerX, height / 2, centerZ);
-        if (currentCuboid) scene.remove(currentCuboid);
-        scene.add(box);
-        currentCuboid = box;
-        return true;
-    }
-    
-    // --------------------------------------------------------------
-    // 4. Right grid: squares intersecting disc (same as 15.html logic)
-    // --------------------------------------------------------------
-    function pointInDisc(x, y) {
-        return (x*x + y*y) <= DISC_RADIUS * DISC_RADIUS + 1e-9;
-    }
-    
-    function squareIntersectsDisc(x0, x1, y0, y1, radius) {
-        let closestX = Math.max(x0, Math.min(0, x1));
-        let closestY = Math.max(y0, Math.min(0, y1));
-        let dist2 = closestX*closestX + closestY*closestY;
-        if (dist2 <= radius*radius + 1e-8) return true;
-        if (pointInDisc(x0, y0) || pointInDisc(x0, y1) || pointInDisc(x1, y0) || pointInDisc(x1, y1)) return true;
-        return false;
-    }
-    
-    function buildSquaresForDelta(delta) {
-        const squares = [];
-        const nSteps = Math.ceil((WORLD_MAX - WORLD_MIN) / delta);
-        for (let i = 0; i < nSteps; i++) {
-            const x0 = WORLD_MIN + i * delta;
-            const x1 = x0 + delta;
-            if (x0 > WORLD_MAX + 1e-6) continue;
-            for (let j = 0; j < nSteps; j++) {
-                const y0 = WORLD_MIN + j * delta;
-                const y1 = y0 + delta;
-                if (y0 > WORLD_MAX + 1e-6) continue;
-                if (!squareIntersectsDisc(x0, x1, y0, y1, DISC_RADIUS)) continue;
-                const cx = (x0 + x1) / 2;
-                const cy = (y0 + y1) / 2;
-                squares.push({ x0, x1, y0, y1, cx, cy });
-            }
-        }
-        return squares;
-    }
-    
-    const gridCanvas = document.getElementById('gridCanvas');
-    const ctxGrid = gridCanvas.getContext('2d');
-    const sizeGrid = gridCanvas.width;
-    
-    function worldToCanvas(xw, yw) {
-        const px = ((xw - WORLD_MIN) / (WORLD_MAX - WORLD_MIN)) * sizeGrid;
-        const py = sizeGrid - ((yw - WORLD_MIN) / (WORLD_MAX - WORLD_MIN)) * sizeGrid;
-        return { x: px, y: py };
-    }
-    
-    function getSquareFromPixel(px, py) {
-        const worldX = WORLD_MIN + (px / sizeGrid) * (WORLD_MAX - WORLD_MIN);
-        const worldY = WORLD_MAX - (py / sizeGrid) * (WORLD_MAX - WORLD_MIN);
-        for (let idx = 0; idx < interactiveSquares.length; idx++) {
-            const sq = interactiveSquares[idx];
-            if (worldX >= sq.x0 && worldX <= sq.x1 && worldY >= sq.y0 && worldY <= sq.y1) {
-                return idx;
-            }
-        }
-        return null;
-    }
-    
-    function drawGrid() {
-        ctxGrid.clearRect(0, 0, sizeGrid, sizeGrid);
-        ctxGrid.fillStyle = "#fefaf0";
-        ctxGrid.fillRect(0, 0, sizeGrid, sizeGrid);
-        
-        const centerCanvas = worldToCanvas(0, 0);
-        const radiusCanvas = worldToCanvas(DISC_RADIUS, 0).x - worldToCanvas(0, 0).x;
-        ctxGrid.beginPath();
-        ctxGrid.arc(centerCanvas.x, centerCanvas.y, radiusCanvas, 0, 2 * Math.PI);
-        ctxGrid.fillStyle = "rgba(100, 149, 237, 0.18)";
-        ctxGrid.fill();
-        ctxGrid.strokeStyle = "#2c5282";
-        ctxGrid.lineWidth = 2.2;
-        ctxGrid.stroke();
-        
-        ctxGrid.beginPath();
-        ctxGrid.strokeStyle = "#9aaec0";
-        ctxGrid.lineWidth = 0.9;
-        for (let x = WORLD_MIN; x <= WORLD_MAX + 1e-6; x += currentDelta) {
-            const p1 = worldToCanvas(x, WORLD_MIN);
-            const p2 = worldToCanvas(x, WORLD_MAX);
-            ctxGrid.moveTo(p1.x, p1.y);
-            ctxGrid.lineTo(p2.x, p2.y);
-            ctxGrid.stroke();
-        }
-        for (let y = WORLD_MIN; y <= WORLD_MAX + 1e-6; y += currentDelta) {
-            const p1 = worldToCanvas(WORLD_MIN, y);
-            const p2 = worldToCanvas(WORLD_MAX, y);
-            ctxGrid.moveTo(p1.x, p1.y);
-            ctxGrid.lineTo(p2.x, p2.y);
-            ctxGrid.stroke();
-        }
-        
-        let activeIdx = null;
-        if (lockedSquareIdx !== null) activeIdx = lockedSquareIdx;
-        else if (hoverSquareIdx !== null) activeIdx = hoverSquareIdx;
-        
-        if (activeIdx !== null && interactiveSquares[activeIdx]) {
-            const sq = interactiveSquares[activeIdx];
-            const tl = worldToCanvas(sq.x0, sq.y1);
-            const br = worldToCanvas(sq.x1, sq.y0);
-            const wRect = br.x - tl.x;
-            const hRect = br.y - tl.y;
-            if (lockedSquareIdx === activeIdx) {
-                ctxGrid.fillStyle = "rgba(220, 38, 38, 0.5)";
-                ctxGrid.fillRect(tl.x, tl.y, wRect, hRect);
-                ctxGrid.strokeStyle = "#b91c1c";
-                ctxGrid.lineWidth = 2.8;
-                ctxGrid.strokeRect(tl.x, tl.y, wRect, hRect);
-            } else {
-                ctxGrid.fillStyle = "rgba(245, 158, 11, 0.45)";
-                ctxGrid.fillRect(tl.x, tl.y, wRect, hRect);
-                ctxGrid.strokeStyle = "#e67e22";
-                ctxGrid.lineWidth = 2.2;
-                ctxGrid.strokeRect(tl.x, tl.y, wRect, hRect);
-            }
-        }
-        
-        ctxGrid.beginPath();
-        ctxGrid.arc(centerCanvas.x, centerCanvas.y, radiusCanvas, 0, 2 * Math.PI);
-        ctxGrid.strokeStyle = "#1e4a76";
-        ctxGrid.lineWidth = 2;
-        ctxGrid.stroke();
-        const origin = worldToCanvas(0, 0);
-        ctxGrid.beginPath();
-        ctxGrid.strokeStyle = "#2d3748";
-        ctxGrid.lineWidth = 1.5;
-        ctxGrid.moveTo(worldToCanvas(WORLD_MIN, 0).x, origin.y);
-        ctxGrid.lineTo(worldToCanvas(WORLD_MAX, 0).x, origin.y);
-        ctxGrid.stroke();
-        ctxGrid.moveTo(origin.x, worldToCanvas(0, WORLD_MIN).y);
-        ctxGrid.lineTo(origin.x, worldToCanvas(0, WORLD_MAX).y);
-        ctxGrid.stroke();
-    }
-    
-    function updateUIand3D() {
-        let est = ESTIMATE_MAP[currentDelta];
-        if (!est) {
-            if (currentDelta <= 0.075) est = ESTIMATE_MAP[0.05];
-            else if (currentDelta <= 0.15) est = ESTIMATE_MAP[0.1];
-            else est = ESTIMATE_MAP[0.2];
-        }
-        document.getElementById('estimateValue').innerText = est.toFixed(4);
-        document.getElementById('deltaDisplay').innerText = currentDelta.toFixed(2);
-        document.getElementById('deltaValueLabel').innerText = currentDelta.toFixed(2);
-        
-        interactiveSquares = buildSquaresForDelta(currentDelta);
-        hoverSquareIdx = null;
-        lockedSquareIdx = null;
-        removeCuboid();
-        drawGrid();
-    }
-    
-    // Slider logic (snap to 0.2, 0.1, 0.05)
-    const deltaSlider = document.getElementById('deltaSlider');
-    function snapDelta(value) {
-        let num = parseFloat(value);
-        if (num <= 0.075) return 0.05;
-        if (num <= 0.15) return 0.1;
-        return 0.2;
-    }
-    deltaSlider.addEventListener('input', (e) => {
-        let raw = parseFloat(e.target.value);
-        let snapped = snapDelta(raw);
-        deltaSlider.value = snapped;
-        if (snapped !== currentDelta) {
-            currentDelta = snapped;
-            updateUIand3D();
-        }
-    });
-    deltaSlider.addEventListener('change', () => {
-        let raw = parseFloat(deltaSlider.value);
-        let newDelta = snapDelta(raw);
-        if (newDelta !== currentDelta) {
-            currentDelta = newDelta;
-            deltaSlider.value = currentDelta;
-            updateUIand3D();
-        }
-    });
-    
-    // Mouse events for grid
-    function update3DfromState() {
-        let activeIdx = null;
-        if (lockedSquareIdx !== null) activeIdx = lockedSquareIdx;
-        else if (hoverSquareIdx !== null) activeIdx = hoverSquareIdx;
-        if (activeIdx !== null && interactiveSquares[activeIdx]) {
-            updateCuboidFromSquare(interactiveSquares[activeIdx]);
-        } else {
-            removeCuboid();
-        }
-        drawGrid();
-    }
-    
-    function handleGridMouseMove(e) {
-        if (lockedSquareIdx !== null) return;
-        const rect = gridCanvas.getBoundingClientRect();
-        const scaleX = gridCanvas.width / rect.width;
-        const scaleY = gridCanvas.height / rect.height;
-        let clientX, clientY;
-        if (e.touches) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
-        }
-        const canvasX = (clientX - rect.left) * scaleX;
-        const canvasY = (clientY - rect.top) * scaleY;
-        if (canvasX < 0 || canvasX > gridCanvas.width || canvasY < 0 || canvasY > gridCanvas.height) {
-            if (hoverSquareIdx !== null) { hoverSquareIdx = null; update3DfromState(); }
+    let scene, camera, renderer, controls, surfaceMesh, wireframeMesh, circleOutline;
+    let currentVolumeMesh = null;
+    let polarCells = [];
+    let hoverCellIdx = null, lockedCellIdx = null;
+    let currentN = 5;
+    const DISC_RADIUS = Math.sqrt(2);
+
+    // Global flag to prevent duplicate reinitialization
+    let threeInitialized = false;
+
+    // Function to build the 3D scene (call this after ensuring container has dimensions)
+    function initThree() {
+        if (threeInitialized) {
+            // Already initialized, just force a resize
+            if (renderer) handleResize();
             return;
         }
-        const idx = getSquareFromPixel(canvasX, canvasY);
-        if (idx !== hoverSquareIdx) {
-            hoverSquareIdx = idx;
-            update3DfromState();
+        try {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xfefef7);
+
+            camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+            camera.position.set(3.2, 2.8, 4.2);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setClearColor(0xfefef7, 1);
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // Handle WebGL context loss (restore on next frame)
+            renderer.domElement.addEventListener('webglcontextlost', (event) => {
+                event.preventDefault();
+                console.warn('WebGL context lost. Will reinitialize on next frame.');
+                threeInitialized = false;
+                // Schedule reinitialization
+                requestAnimationFrame(() => initThree());
+            });
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.rotateSpeed = 1.2;
+            controls.zoomSpeed = 1.2;
+            controls.panSpeed = 0.8;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404060);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(2, 5, 3);
+            scene.add(dirLight);
+            const backLight = new THREE.PointLight(0xccaa88, 0.4);
+            backLight.position.set(-2, 1, -3);
+            scene.add(backLight);
+            const fillLight = new THREE.PointLight(0xaaccff, 0.3);
+            fillLight.position.set(1, 2, 2);
+            scene.add(fillLight);
+            const gridHelper = new THREE.GridHelper(5, 20, 0x888888, 0xbbbbbb);
+            gridHelper.position.y = -0.05;
+            scene.add(gridHelper);
+
+            // Surface geometry (disc)
+            const R = DISC_RADIUS;
+            const segments = 90;
+            const stepDisc = (2 * R) / segments;
+            const startCoord = -R;
+            function insideDisc(x, z) { return (x*x + z*z) <= R*R + 1e-9; }
+            const vertices = [];
+            const indexMap = [];
+            for (let i = 0; i <= segments; i++) {
+                indexMap[i] = [];
+                for (let j = 0; j <= segments; j++) indexMap[i][j] = -1;
+            }
+            for (let i = 0; i <= segments; i++) {
+                const x = startCoord + i * stepDisc;
+                for (let j = 0; j <= segments; j++) {
+                    const z = startCoord + j * stepDisc;
+                    if (insideDisc(x, z)) {
+                        const yVal = Math.exp(-(x*x + z*z));
+                        vertices.push(x, yVal, z);
+                        indexMap[i][j] = vertices.length / 3 - 1;
+                    }
+                }
+            }
+            const indices = [];
+            for (let i = 0; i < segments; i++) {
+                for (let j = 0; j < segments; j++) {
+                    const i00 = indexMap[i][j], i10 = indexMap[i+1][j], i01 = indexMap[i][j+1], i11 = indexMap[i+1][j+1];
+                    if (i00 !== -1 && i10 !== -1 && i01 !== -1 && i11 !== -1) {
+                        indices.push(i00, i10, i01);
+                        indices.push(i10, i11, i01);
+                    }
+                }
+            }
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+            geometry.setIndex(indices);
+            geometry.computeVertexNormals();
+            const surfaceMat = new THREE.MeshPhongMaterial({ color: 0x3a86ff, side: THREE.DoubleSide, transparent: true, opacity: 0.4, emissive: 0x001133 });
+            surfaceMesh = new THREE.Mesh(geometry, surfaceMat);
+            scene.add(surfaceMesh);
+            const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x2266aa, wireframe: true, transparent: true, opacity: 0.2 });
+            wireframeMesh = new THREE.Mesh(geometry, wireframeMat);
+            scene.add(wireframeMesh);
+            const circlePoints = [];
+            for (let i = 0; i <= 80; i++) {
+                const angle = (i / 80) * Math.PI * 2;
+                circlePoints.push(new THREE.Vector3(R * Math.cos(angle), -0.045, R * Math.sin(angle)));
+            }
+            const circleOutlineObj = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(circlePoints), new THREE.LineBasicMaterial({ color: 0x2c5282 }));
+            scene.add(circleOutlineObj);
+            circleOutline = circleOutlineObj;
+
+            threeInitialized = true;
+            console.log('Three.js initialized');
+        } catch (err) {
+            console.error('Three.js initialization error:', err);
+            // Still mark as tried to prevent infinite loop
+            threeInitialized = true;
         }
     }
-    
-    function handleGridClick(e) {
-        const rect = gridCanvas.getBoundingClientRect();
-        const scaleX = gridCanvas.width / rect.width;
-        const scaleY = gridCanvas.height / rect.height;
-        let clientX, clientY;
-        if (e.touches) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
+
+    // Helper functions for volume, cells, etc. (unchanged)
+    function removeVolume() {
+        if (currentVolumeMesh) {
+            scene.remove(currentVolumeMesh);
+            currentVolumeMesh = null;
         }
-        const canvasX = (clientX - rect.left) * scaleX;
-        const canvasY = (clientY - rect.top) * scaleY;
-        const idx = getSquareFromPixel(canvasX, canvasY);
-        if (idx !== null) {
-            if (lockedSquareIdx !== idx) {
-                lockedSquareIdx = idx;
-                hoverSquareIdx = null;
-                update3DfromState();
-            }
-        } else {
-            if (lockedSquareIdx !== null) {
-                lockedSquareIdx = null;
-                hoverSquareIdx = null;
-                update3DfromState();
-            }
-        }
-        e.stopPropagation();
     }
-    
-    gridCanvas.addEventListener('mousemove', handleGridMouseMove);
-    gridCanvas.addEventListener('click', handleGridClick);
-    gridCanvas.addEventListener('mouseleave', () => {
-        if (lockedSquareIdx === null && hoverSquareIdx !== null) {
-            hoverSquareIdx = null;
-            update3DfromState();
-        }
-    });
-    window.addEventListener('click', (event) => {
-        if (!gridCanvas.contains(event.target) && event.target !== gridCanvas) {
-            if (lockedSquareIdx !== null) {
-                lockedSquareIdx = null;
-                hoverSquareIdx = null;
-                update3DfromState();
+
+    function createVolumeMeshForCell(cell) {
+        const h = cell.heightVal;
+        if (h <= 1e-6) return null;
+        const r0 = cell.r0, r1 = cell.r1, theta0 = cell.theta0, theta1 = cell.theta1;
+        const radialSteps = 24, angularSteps = 24;
+        const verticesMesh = [];
+        const indicesMesh = [];
+        const nRad = radialSteps+1, nAng = angularSteps+1;
+        const bottomPos = [], topPos = [];
+        for (let i = 0; i <= radialSteps; i++) {
+            const r = r0 + (r1 - r0) * i / radialSteps;
+            for (let j = 0; j <= angularSteps; j++) {
+                const theta = theta0 + (theta1 - theta0) * j / angularSteps;
+                const x = r * Math.cos(theta), z = r * Math.sin(theta);
+                bottomPos.push({x,z}); topPos.push({x,z});
             }
         }
-    });
-    gridCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleGridMouseMove(e); });
-    gridCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleGridClick(e); });
-    
+        for (let p of bottomPos) verticesMesh.push(p.x, 0, p.z);
+        for (let p of topPos) verticesMesh.push(p.x, h, p.z);
+        const topStart = bottomPos.length;
+        for (let i = 0; i < radialSteps; i++) {
+            for (let j = 0; j < angularSteps; j++) {
+                const idx = i * nAng + j;
+                const i1 = idx, i2 = idx+1, i3 = idx+nAng, i4 = idx+nAng+1;
+                indicesMesh.push(i1, i3, i2, i2, i3, i4);
+                const t1 = topStart+i1, t2 = topStart+i2, t3 = topStart+i3, t4 = topStart+i4;
+                indicesMesh.push(t1, t3, t2, t2, t3, t4);
+                indicesMesh.push(i1, i2, t1, i2, t2, t1, i2, i4, t2, i4, t4, t2, i4, i3, t4, i3, t3, t4, i3, i1, t3, i1, t1, t3);
+            }
+        }
+        const geom = new THREE.BufferGeometry();
+        geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(verticesMesh), 3));
+        geom.setIndex(indicesMesh);
+        geom.computeVertexNormals();
+        const volMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, emissive: 0x441111, roughness: 0.4 });
+        return new THREE.Mesh(geom, volMat);
+    }
+
+    function updateVolumeFromSelection() {
+        if (!threeInitialized) return;
+        const activeIdx = (lockedCellIdx !== null) ? lockedCellIdx : hoverCellIdx;
+        removeVolume();
+        if (activeIdx !== null && polarCells[activeIdx]) {
+            const mesh = createVolumeMeshForCell(polarCells[activeIdx]);
+            if (mesh) {
+                scene.add(mesh);
+                currentVolumeMesh = mesh;
+            }
+        }
+    }
+
+    function buildPolarCells(n) {
+        const cells = [];
+        const dr = DISC_RADIUS / n;
+        const dtheta = 2 * Math.PI / n;
+        for (let i = 0; i < n; i++) {
+            const r0 = i * dr, r1 = (i+1)*dr;
+            const maxRadius = r1;
+            const heightVal = Math.exp(-(maxRadius * maxRadius));
+            const area = 0.5 * (r1*r1 - r0*r0) * dtheta;
+            for (let j = 0; j < n; j++) {
+                cells.push({
+                    idx: cells.length, i, j, r0, r1,
+                    theta0: j*dtheta, theta1: (j+1)*dtheta,
+                    maxRadius, heightVal, area
+                });
+            }
+        }
+        return cells;
+    }
+
+    function computeRiemannEstimate(cells) {
+        let sum = 0;
+        for (const cell of cells) sum += cell.heightVal * cell.area;
+        return sum;
+    }
+
+    function updateLeftPanel() {
+        document.getElementById('estimateValue').innerText = computeRiemannEstimate(polarCells).toFixed(4);
+        document.getElementById('nValueLabel').innerText = currentN;
+    }
+
+    // Canvas drawing functions (unchanged but rely on correct canvas sizing)
+    const rtCanvas = document.getElementById('rtCanvas');
+    const rtCtx = rtCanvas.getContext('2d');
+    const polarCanvas = document.getElementById('polarCanvas');
+    const polarCtx = polarCanvas.getContext('2d');
+    let rtWidth, rtHeight;
+
+    function drawRTGrid() {
+        if (!rtCanvas) return;
+        const w = rtCanvas.clientWidth, h = rtCanvas.clientHeight;
+        if (w === 0 || h === 0) return; // wait for resize
+        rtCanvas.width = w; rtCanvas.height = h;
+        rtWidth = w; rtHeight = h;
+        const margin = { left: 48, right: 28, top: 28, bottom: 38 };
+        const plotW = w - margin.left - margin.right;
+        const plotH = h - margin.top - margin.bottom;
+        rtCtx.clearRect(0, 0, w, h);
+        rtCtx.fillStyle = "#fefaf0";
+        rtCtx.fillRect(0, 0, w, h);
+        const rMax = DISC_RADIUS, thetaMax = 2 * Math.PI;
+        function rToX(r) { return margin.left + (r / rMax) * plotW; }
+        function thetaToY(theta) { return margin.top + plotH - (theta / thetaMax) * plotH; }
+        rtCtx.beginPath();
+        rtCtx.strokeStyle = "#aaa";
+        rtCtx.lineWidth = 0.5;
+        for (let i = 0; i <= currentN; i++) {
+            const x = rToX(i * DISC_RADIUS / currentN);
+            rtCtx.moveTo(x, margin.top); rtCtx.lineTo(x, margin.top+plotH);
+            const y = thetaToY(i * 2*Math.PI / currentN);
+            rtCtx.moveTo(margin.left, y); rtCtx.lineTo(margin.left+plotW, y);
+        }
+        rtCtx.stroke();
+        const drCell = DISC_RADIUS / currentN;
+        const dthetaCell = 2*Math.PI / currentN;
+        for (let i = 0; i < currentN; i++) {
+            for (let j = 0; j < currentN; j++) {
+                const idx = i * currentN + j;
+                const isActive = (lockedCellIdx === idx) || (hoverCellIdx === idx);
+                if (isActive) {
+                    const x0 = rToX(i*drCell);
+                    const x1 = rToX((i+1)*drCell);
+                    const y0 = thetaToY((j+1)*dthetaCell);
+                    const y1 = thetaToY(j*dthetaCell);
+                    rtCtx.fillStyle = (lockedCellIdx === idx) ? "rgba(220,38,38,0.55)" : "rgba(245,158,11,0.48)";
+                    rtCtx.fillRect(x0, y0, x1-x0, y1-y0);
+                    rtCtx.strokeStyle = "#b91c1c";
+                    rtCtx.lineWidth = 1.8;
+                    rtCtx.strokeRect(x0, y0, x1-x0, y1-y0);
+                }
+            }
+        }
+        rtCtx.beginPath();
+        rtCtx.moveTo(margin.left, margin.top); rtCtx.lineTo(margin.left+plotW, margin.top);
+        rtCtx.lineTo(margin.left+plotW, margin.top+plotH); rtCtx.lineTo(margin.left, margin.top+plotH);
+        rtCtx.closePath();
+        rtCtx.strokeStyle = "#2c5282";
+        rtCtx.lineWidth = 1.8;
+        rtCtx.stroke();
+        rtCtx.fillStyle = "#1e4660";
+        rtCtx.font = "bold 11px 'Arial'";
+        rtCtx.fillText("r", margin.left+plotW-12, margin.top+plotH-6);
+        rtCtx.save();
+        rtCtx.translate(margin.left-18, margin.top+plotH/2);
+        rtCtx.rotate(-Math.PI/2);
+        rtCtx.fillText("θ", -8, 0);
+        rtCtx.restore();
+        rtCtx.fillText("0", margin.left-10, margin.top+plotH+5);
+        rtCtx.fillText(String(DISC_RADIUS.toFixed(2)), rToX(DISC_RADIUS)-15, margin.top+plotH+5);
+        rtCtx.fillText("0", margin.left-18, thetaToY(0)+4);
+        rtCtx.fillText("2π", margin.left-26, thetaToY(2*Math.PI)-4);
+    }
+
+    function drawPolarGrid() {
+        const size = polarCanvas.clientWidth;
+        if (size === 0) return;
+        polarCanvas.width = size; polarCanvas.height = size;
+        const ctx = polarCtx;
+        const center = { x: size/2, y: size/2 };
+        const radiusPx = size * 0.42;
+        const worldExtent = DISC_RADIUS * 1.35;
+        const scale = radiusPx / worldExtent;
+        function worldToCanvas(xw, yw) { return { x: center.x + xw*scale, y: center.y - yw*scale }; }
+        ctx.clearRect(0,0,size,size);
+        ctx.fillStyle = "#fef9ef"; ctx.fillRect(0,0,size,size);
+        const xAxisLeft = worldToCanvas(-worldExtent, 0);
+        const xAxisRight = worldToCanvas(worldExtent, 0);
+        const yAxisBottom = worldToCanvas(0, -worldExtent);
+        const yAxisTop = worldToCanvas(0, worldExtent);
+        ctx.beginPath();
+        ctx.moveTo(xAxisLeft.x, xAxisLeft.y);
+        ctx.lineTo(xAxisRight.x, xAxisRight.y);
+        ctx.moveTo(yAxisBottom.x, yAxisBottom.y);
+        ctx.lineTo(yAxisTop.x, yAxisTop.y);
+        ctx.strokeStyle = "#2c5282";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = "#1e4660";
+        ctx.font = "bold 13px 'Arial'";
+        ctx.fillText("x", xAxisRight.x - 12, xAxisRight.y - 6);
+        ctx.fillText("y", yAxisTop.x + 8, yAxisTop.y + 4);
+        for (let val = -2; val <= 2; val++) {
+            if (Math.abs(val) < 0.1) continue;
+            const xTick = worldToCanvas(val, 0);
+            ctx.beginPath();
+            ctx.moveTo(xTick.x, xTick.y-4); ctx.lineTo(xTick.x, xTick.y+4);
+            ctx.strokeStyle = "#5a6e8a"; ctx.lineWidth = 1; ctx.stroke();
+            const yTick = worldToCanvas(0, val);
+            ctx.beginPath();
+            ctx.moveTo(yTick.x-4, yTick.y); ctx.lineTo(yTick.x+4, yTick.y);
+            ctx.stroke();
+        }
+        const discCenter = worldToCanvas(0,0);
+        const discRadiusPx = (DISC_RADIUS / worldExtent) * radiusPx;
+        ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, discRadiusPx, 0, 2*Math.PI);
+        ctx.fillStyle = "rgba(100,149,237,0.12)"; ctx.fill();
+        ctx.strokeStyle = "#2c5282"; ctx.lineWidth = 2.2; ctx.stroke();
+        const dtheta = 2*Math.PI/currentN, dr = DISC_RADIUS/currentN;
+        for (let j=0; j<=currentN; j++) {
+            const theta = j*dtheta;
+            const p2 = worldToCanvas(DISC_RADIUS*Math.cos(theta), DISC_RADIUS*Math.sin(theta));
+            ctx.beginPath(); ctx.moveTo(discCenter.x, discCenter.y); ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = "#9aaec0"; ctx.stroke();
+        }
+        for (let i=1; i<=currentN; i++) {
+            const rpx = (i*dr / worldExtent)*radiusPx;
+            ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, rpx, 0, 2*Math.PI);
+            ctx.stroke();
+        }
+        const activeIdx = (lockedCellIdx !== null) ? lockedCellIdx : hoverCellIdx;
+        if (activeIdx !== null && polarCells[activeIdx]) {
+            const cell = polarCells[activeIdx];
+            const r0px = (cell.r0 / worldExtent)*radiusPx;
+            const r1px = (cell.r1 / worldExtent)*radiusPx;
+            const theta0 = cell.theta0, theta1 = cell.theta1;
+            const steps = 40;
+            ctx.beginPath();
+            for (let k=0; k<=steps; k++) {
+                const theta = theta0 + (theta1-theta0)*k/steps;
+                const x = discCenter.x + r1px * Math.cos(theta);
+                const y = discCenter.y - r1px * Math.sin(theta);
+                if (k===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            }
+            for (let k=steps; k>=0; k--) {
+                const theta = theta0 + (theta1-theta0)*k/steps;
+                const x = discCenter.x + r0px * Math.cos(theta);
+                const y = discCenter.y - r0px * Math.sin(theta);
+                ctx.lineTo(x,y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = (lockedCellIdx===activeIdx) ? "rgba(220,38,38,0.55)" : "rgba(245,158,11,0.48)";
+            ctx.fill();
+            ctx.strokeStyle = "#b91c1c"; ctx.lineWidth = 2.4; ctx.stroke();
+        }
+        ctx.beginPath(); ctx.arc(discCenter.x, discCenter.y, discRadiusPx, 0, 2*Math.PI);
+        ctx.strokeStyle = "#1e4a76"; ctx.lineWidth = 2.4; ctx.stroke();
+    }
+
+    function refreshAllCanvasesAnd3D() {
+        updateLeftPanel();
+        drawRTGrid();
+        drawPolarGrid();
+        if (threeInitialized) updateVolumeFromSelection();
+    }
+
+    // Interaction helpers (unchanged)
+    function findCellIndexFromXY(xw, yw) {
+        const r = Math.hypot(xw, yw);
+        if (r > DISC_RADIUS + 1e-6) return null;
+        let theta = Math.atan2(yw, xw);
+        if (theta < 0) theta += 2*Math.PI;
+        const dr = DISC_RADIUS / currentN;
+        const dtheta = 2*Math.PI / currentN;
+        const i = Math.floor(r / dr);
+        const j = Math.floor(theta / dtheta);
+        if (i<0 || i>=currentN || j<0 || j>=currentN) return null;
+        return i * currentN + j;
+    }
+
+    function findCellIndexFromRT(canvasX, canvasY) {
+        const w = rtCanvas.width, h = rtCanvas.height;
+        if (w === 0 || h === 0) return null;
+        const margin = { left: 48, right: 28, top: 28, bottom: 38 };
+        const plotW = w - margin.left - margin.right;
+        const plotH = h - margin.top - margin.bottom;
+        if (canvasX < margin.left || canvasX > margin.left+plotW || canvasY < margin.top || canvasY > margin.top+plotH) return null;
+        const rFrac = (canvasX - margin.left) / plotW;
+        const thetaFrac = (canvasY - margin.top) / plotH;
+        const r = rFrac * DISC_RADIUS;
+        const theta = (1 - thetaFrac) * 2*Math.PI;
+        const dr = DISC_RADIUS / currentN;
+        const dtheta = 2*Math.PI / currentN;
+        const i = Math.floor(r / dr);
+        const j = Math.floor(theta / dtheta);
+        if (i<0 || i>=currentN || j<0 || j>=currentN) return null;
+        return i * currentN + j;
+    }
+
+    function attachCanvasEvents(canvas, isRT) {
+        const getIdx = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let cx, cy;
+            if (e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+            else { cx = e.clientX; cy = e.clientY; }
+            const canvasX = (cx - rect.left) * scaleX;
+            const canvasY = (cy - rect.top) * scaleY;
+            if (isRT) return findCellIndexFromRT(canvasX, canvasY);
+            const sz = polarCanvas.width;
+            const center = sz/2;
+            const radiusPx = sz * 0.42;
+            const worldExtent = DISC_RADIUS * 1.35;
+            const scaleF = radiusPx / worldExtent;
+            const dx = (canvasX - center) / scaleF;
+            const dy = (center - canvasY) / scaleF;
+            return findCellIndexFromXY(dx, dy);
+        };
+        canvas.addEventListener('mousemove', (e) => {
+            if (lockedCellIdx !== null) return;
+            const idx = getIdx(e);
+            if (idx !== hoverCellIdx) { hoverCellIdx = idx; refreshAllCanvasesAnd3D(); }
+        });
+        canvas.addEventListener('click', (e) => {
+            const idx = getIdx(e);
+            if (idx !== null) { lockedCellIdx = idx; hoverCellIdx = null; refreshAllCanvasesAnd3D(); }
+            else { lockedCellIdx = null; hoverCellIdx = null; refreshAllCanvasesAnd3D(); }
+        });
+        canvas.addEventListener('mouseleave', () => { if (lockedCellIdx === null && hoverCellIdx !== null) { hoverCellIdx = null; refreshAllCanvasesAnd3D(); } });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); const ev = e; const idx = getIdx(ev); if (lockedCellIdx===null && idx !== hoverCellIdx) { hoverCellIdx = idx; refreshAllCanvasesAnd3D(); } });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); const idx = getIdx(e); if (idx !== null) { lockedCellIdx = idx; hoverCellIdx = null; refreshAllCanvasesAnd3D(); } else { lockedCellIdx = null; hoverCellIdx = null; refreshAllCanvasesAnd3D(); } });
+    }
+
+    // Draggable point demo (unchanged)
+    const pointCanvas = document.getElementById('pointCanvas');
+    const pointCtx = pointCanvas.getContext('2d');
+    let dragPoint = { x: 1.5, y: 1.2 };
+    let dragging = false;
+    function drawPointDemo() {
+        const w = pointCanvas.clientWidth, h = pointCanvas.clientHeight;
+        if (w === 0 || h === 0) return;
+        pointCanvas.width = w; pointCanvas.height = h;
+        const center = { x: w/2, y: h/2 };
+        const scale = Math.min(w, h) / 8.5;
+        function worldToCanvas(xw, yw) { return { x: center.x + xw*scale, y: center.y - yw*scale }; }
+        pointCtx.clearRect(0,0,w,h);
+        pointCtx.fillStyle = "#fefefa"; pointCtx.fillRect(0,0,w,h);
+        pointCtx.beginPath(); pointCtx.strokeStyle = "#aaa";
+        for (let i=-4; i<=4; i++) {
+            const p = worldToCanvas(i,0);
+            pointCtx.moveTo(p.x, center.y-5); pointCtx.lineTo(p.x, center.y+5);
+            const py = worldToCanvas(0,i);
+            pointCtx.moveTo(center.x-5, py.y); pointCtx.lineTo(center.x+5, py.y);
+        }
+        pointCtx.stroke();
+        pointCtx.beginPath(); pointCtx.strokeStyle = "#2c5282"; pointCtx.lineWidth=2;
+        const xAxis = worldToCanvas(-4,0); const xEnd = worldToCanvas(4,0);
+        const yAxis = worldToCanvas(0,-4); const yEnd = worldToCanvas(0,4);
+        pointCtx.moveTo(xAxis.x, xAxis.y); pointCtx.lineTo(xEnd.x, xEnd.y);
+        pointCtx.moveTo(yAxis.x, yAxis.y); pointCtx.lineTo(yEnd.x, yEnd.y);
+        pointCtx.stroke();
+        const pWorld = dragPoint;
+        const rVal = Math.hypot(pWorld.x, pWorld.y);
+        let thetaVal = Math.atan2(pWorld.y, pWorld.x);
+        if (thetaVal < 0) thetaVal += 2*Math.PI;
+        const pCanvas = worldToCanvas(pWorld.x, pWorld.y);
+        const originCanvas = worldToCanvas(0,0);
+        pointCtx.beginPath(); pointCtx.moveTo(originCanvas.x, originCanvas.y); pointCtx.lineTo(pCanvas.x, pCanvas.y);
+        pointCtx.strokeStyle = "#e67e22"; pointCtx.lineWidth = 2.5; pointCtx.stroke();
+        pointCtx.beginPath(); pointCtx.arc(pCanvas.x, pCanvas.y, 8, 0, 2*Math.PI);
+        pointCtx.fillStyle = "#d32f2f"; pointCtx.fill();
+        const angleRadius = 40;
+        pointCtx.beginPath();
+        pointCtx.arc(originCanvas.x, originCanvas.y, angleRadius, 0, -thetaVal, true);
+        pointCtx.strokeStyle = "#1e4660"; pointCtx.lineWidth = 2; pointCtx.stroke();
+        const midAngleCanvas = -thetaVal / 2;
+        const labelX = originCanvas.x + angleRadius * 0.7 * Math.cos(midAngleCanvas);
+        const labelY = originCanvas.y + angleRadius * 0.7 * Math.sin(midAngleCanvas);
+        pointCtx.fillStyle = "#1e4660";
+        pointCtx.font = "11px monospace";
+        pointCtx.fillText(`θ = ${thetaVal.toFixed(2)} rad`, labelX-15, labelY-8);
+        pointCtx.fillText(`r = ${rVal.toFixed(3)}`, pCanvas.x+10, pCanvas.y-8);
+        document.getElementById('cartesianLine').innerHTML = `Cartesian: (${pWorld.x.toFixed(3)}, ${pWorld.y.toFixed(3)})`;
+        document.getElementById('polarLine').innerHTML = `Polar: \\(r = ${rVal.toFixed(3)}\\), \\(\\theta = ${thetaVal.toFixed(3)}\\) rad`;
+        MathJax.typesetPromise?.();
+    }
+    function setupPointDrag() {
+        function getMouseWorld(e) {
+            const rect = pointCanvas.getBoundingClientRect();
+            const scaleX = pointCanvas.width / rect.width;
+            const scaleY = pointCanvas.height / rect.height;
+            let cx, cy;
+            if (e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+            else { cx = e.clientX; cy = e.clientY; }
+            const canvasX = (cx - rect.left) * scaleX;
+            const canvasY = (cy - rect.top) * scaleY;
+            const w = pointCanvas.width, h = pointCanvas.height;
+            const center = { x: w/2, y: h/2 };
+            const scaleCoord = Math.min(w, h) / 8.5;
+            const xw = (canvasX - center.x) / scaleCoord;
+            const yw = (center.y - canvasY) / scaleCoord;
+            return { x: Math.min(4, Math.max(-4, xw)), y: Math.min(4, Math.max(-4, yw)) };
+        }
+        pointCanvas.addEventListener('mousedown', (e) => { dragging = true; dragPoint = getMouseWorld(e); drawPointDemo(); e.preventDefault(); });
+        window.addEventListener('mousemove', (e) => { if (dragging) { dragPoint = getMouseWorld(e); drawPointDemo(); } });
+        window.addEventListener('mouseup', () => { dragging = false; });
+        pointCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); dragging = true; dragPoint = getMouseWorld(e); drawPointDemo(); });
+        pointCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (dragging) { dragPoint = getMouseWorld(e); drawPointDemo(); } });
+        pointCanvas.addEventListener('touchend', () => { dragging = false; });
+    }
+
+    // Slider and rebuild
+    const nSlider = document.getElementById('nSlider');
+    function rebuildAll() {
+        polarCells = buildPolarCells(currentN);
+        hoverCellIdx = null; lockedCellIdx = null;
+        removeVolume();
+        refreshAllCanvasesAnd3D();
+    }
+    nSlider.addEventListener('input', (e) => { currentN = parseInt(e.target.value); nSlider.value = currentN; rebuildAll(); });
+
+    // Robust resize handler that ensures renderer size is valid
+    function handleResize() {
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        if (w > 0 && h > 0 && renderer) {
+            renderer.setSize(w, h);
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+        }
+        // Redraw 2D canvases even if Three.js not ready
+        drawRTGrid();
+        drawPolarGrid();
+        drawPointDemo();
+        // Force a render frame
+        if (threeInitialized) {
+            if (renderer && scene && camera) renderer.render(scene, camera);
+        }
+    }
+
     // Animation loop
     function animate() {
-        controls.update();
-        renderer.render(scene, camera);
+        if (threeInitialized && controls) controls.update();
+        if (threeInitialized && renderer && scene && camera) {
+            renderer.render(scene, camera);
+        }
         requestAnimationFrame(animate);
     }
-    animate();
-    
-    window.addEventListener('resize', () => {
-        const w = container.clientWidth;
-        const h = container.clientHeight;
-        renderer.setSize(w, h);
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-    });
-    
-    // Initialize
-    currentDelta = 0.2;
-    deltaSlider.value = 0.2;
-    updateUIand3D();
-    
-    setTimeout(() => {
-        const w = container.clientWidth;
-        const h = container.clientHeight;
-        renderer.setSize(w, h);
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-    }, 120);
-    
-    // Navigation
-    function getCurrentNumber() {
-        const path = window.location.pathname;
-        const match = path.match(/\/(\d+)\.html$/);
-        return match ? parseInt(match[1], 10) : null;
+
+    // Initialization sequence
+    function fullInit() {
+        initThree();                 // sets up Three.js and adds to DOM
+        polarCells = buildPolarCells(currentN);
+        attachCanvasEvents(rtCanvas, true);
+        attachCanvasEvents(polarCanvas, false);
+        setupPointDrag();
+        rebuildAll();               // this also calls refreshAllCanvasesAnd3D and updates volume
+        handleResize();             // ensure initial sizes
+        animate();
     }
-    function navigateTo(targetNum) {
-        window.location.href = `${targetNum}.html`;
+
+    // Run after DOM ready, and also on pageshow (for bfcache)
+    window.addEventListener('load', () => {
+        fullInit();
+    });
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+            // Page restored from bfcache, reinitialize Three.js and sizes
+            threeInitialized = false;
+            fullInit();
+        }
+    });
+
+function getCurrentPageNumber() {
+    const fileName = window.location.pathname.split('/').pop(); // e.g. "16.html"
+    const number = parseInt(fileName);
+    return number;
+}
+
+document.getElementById('prevButton').addEventListener('click', () => {
+    const current = getCurrentPageNumber();
+    if (!isNaN(current) && current > 1) {
+        window.location.href = (current - 1) + '.html';
     }
-    document.getElementById('prevButton').addEventListener('click', () => {
-        const cur = getCurrentNumber();
-        if (cur !== null) navigateTo(cur - 1);
-    });
-    document.getElementById('nextButton').addEventListener('click', () => {
-        const cur = getCurrentNumber();
-        if (cur !== null) navigateTo(cur + 1);
-    });
+});
+
+document.getElementById('nextButton').addEventListener('click', () => {
+    const current = getCurrentPageNumber();
+    if (!isNaN(current)) {
+        window.location.href = (current + 1) + '.html';
+    }
+});
 </script>
 </body>
 </html>

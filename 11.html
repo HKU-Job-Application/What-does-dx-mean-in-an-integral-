@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Multivariable Calculus · Substitution Insight</title>
-    <!-- MathJax 3 for LaTeX rendering -->
+    <title>Multivariable Calculus · Applying the concepts</title>
+    <!-- MathJax 3 for LaTeX rendering (kept for consistency) -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     <style>
         * {
@@ -44,11 +44,10 @@
             border: 1px solid rgba(255,255,255,0.5);
         }
 
-        /* Font size increased by ~20% relative to 10.html (1.1rem → 1.32rem) */
         .line {
-            font-size: 1.32rem;
-            line-height: 1.55;
-            margin-bottom: 1.2rem;
+            font-size: 2rem;
+            line-height: 1.4;
+            margin-bottom: 1.8rem;
             font-weight: 500;
             color: #1a2c3e;
             letter-spacing: -0.01em;
@@ -58,7 +57,7 @@
             margin-bottom: 0;
         }
 
-        /* LaTeX inline styling */
+        /* LaTeX inline styling (kept for visual harmony) */
         .latex-inline {
             display: inline-block;
             vertical-align: middle;
@@ -74,7 +73,7 @@
             display: flex;
             align-items: center;
             padding: 0 30px;
-            pointer-events: none;   /* container does not trap clicks, buttons re-enable */
+            pointer-events: none;
             z-index: 1000;
         }
 
@@ -97,18 +96,19 @@
             gap: 6px;
         }
 
-        /* Always visible — no hiding logic applied */
+        /* Previous button (red) stays left */
         .btn-prev {
             background-color: #d32f2f;
-            margin-right: auto;
+            margin-right: auto;   /* pushes next button to the right */
         }
         .btn-prev:hover {
             background-color: #b71c1c;
         }
 
+        /* Next button (deep green) stays right */
         .btn-next {
             background-color: #2e7d32;
-            margin-left: auto;
+            margin-left: auto;    /* ensures it stays at the right edge */
         }
         .btn-next:hover {
             background-color: #1b5e20;
@@ -118,6 +118,7 @@
             transform: scale(0.96);
         }
 
+        /* Responsive adjustments: maintain exclusion zone & button sizes */
         @media (max-width: 600px) {
             .nav-btn {
                 width: 120px;
@@ -128,8 +129,7 @@
                 padding: 1.5rem 1.2rem 80px 1.2rem;
             }
             .line {
-                font-size: 1.1rem;   /* proportionally comfortable on small screens */
-                line-height: 1.5;
+                font-size: 1.5rem;
             }
             .content-card {
                 padding: 1.5rem;
@@ -146,12 +146,6 @@
         html {
             scroll-behavior: smooth;
         }
-
-        /* ensure strong tags inherit consistent weight and size */
-        strong {
-            font-weight: 700;
-            color: #0f2b3b;
-        }
     </style>
 </head>
 <body>
@@ -159,13 +153,10 @@
 <div class="presentation-content">
     <div class="content-card">
         <div class="line">
-            Let's very quickly go over one more example of the same. This is tedious, I know. This is because single-variable calculus is very straightforward. But if we make sure our grasp of the concepts is sound, we'll have a much easier time in multi-variable calculus, where many students just get confused.
+            Now that we've got that concept sorted,
         </div>
         <div class="line">
-            Let's think about \(\displaystyle\int_1^\sqrt{3} \dfrac{1}{1+x^2}\,\text{d}x\).
-        </div>
-        <div class="line">
-            I know your instinct is to jump to, "OK I know that the trick is to let \(x=\tan(\theta)\), and then as long as we identify what \(\text{d}x\) is, algebraically everything will work out." And that's true. But, just for this one example, shall we think through very carefully what exactly it means geometrically to do the substitution \(x=\tan(\theta)\)? How exactly is this expressed in terms of integral approximations? Let's do exactly what we did for the earlier function.
+            let's apply it to some situations in multi-variable calculus.
         </div>
     </div>
 </div>
@@ -177,13 +168,16 @@
 
 <script>
     // --------------------------------------------------------------
-    //  PURE ARITHMETIC NAVIGATION (numeric filenames)
-    //  Based strictly on current file number ± 1 → target.html
-    //  Buttons always visible; no boundary checks, no hiding.
-    //  Fully compliant with buttoninstruction.txt
+    //  PURE ARITHMETIC NAVIGATION (no existence checks, buttons always visible)
+    //  - Extracts numeric filename (e.g., 13.html → 13)
+    //  - Previous: navigates to (current - 1).html
+    //  - Next: navigates to (current + 1).html
+    //  - Buttons are ALWAYS shown; boundary detection is omitted on purpose.
+    //  - If a target file doesn't exist, browser shows 404 (acceptable per spec).
     // --------------------------------------------------------------
+    
     (function() {
-        // Extract numeric part from current filename (e.g., "11.html" → 11)
+        // Extract the numeric part from the current filename (e.g., "13.html" → 13)
         function getCurrentNumber() {
             const path = window.location.pathname;
             const filename = path.substring(path.lastIndexOf('/') + 1);
@@ -191,39 +185,31 @@
             if (match && match[1]) {
                 return parseInt(match[1], 10);
             }
-            return null;
+            // Fallback: in case the naming is broken, default to 13 (this file is 13.html)
+            // but arithmetic still works relative to 13.
+            console.warn("Could not parse numeric filename, defaulting to 13.");
+            return 13;
         }
 
-        const currentNum = getCurrentNumber();
-        const prevBtn = document.getElementById('prevButton');
-        const nextBtn = document.getElementById('nextButton');
+        const currentNumber = getCurrentNumber();
 
-        function goToSlide(targetNumber) {
-            if (targetNumber !== null && !isNaN(targetNumber)) {
-                window.location.href = targetNumber + '.html';
-            }
-        }
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (currentNum !== null) {
-                    goToSlide(currentNum - 1);
-                }
+        // Previous button: navigate to (currentNumber - 1).html
+        const prevButton = document.getElementById('prevButton');
+        if (prevButton) {
+            prevButton.addEventListener('click', function() {
+                const target = currentNumber - 1;
+                window.location.href = target + '.html';
             });
         }
 
-        if (nextBtn) {
-            nextBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (currentNum !== null) {
-                    goToSlide(currentNum + 1);
-                }
+        // Next button: navigate to (currentNumber + 1).html
+        const nextButton = document.getElementById('nextButton');
+        if (nextButton) {
+            nextButton.addEventListener('click', function() {
+                const target = currentNumber + 1;
+                window.location.href = target + '.html';
             });
         }
-
-        // Buttons are ALWAYS visible (CSS enforces display:flex)
-        // No existence checks — exactly as required.
     })();
 </script>
 </body>

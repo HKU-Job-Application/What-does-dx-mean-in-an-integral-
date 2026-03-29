@@ -242,19 +242,28 @@
             Let's pretend we didn't know that \(\text{d}x=2u\,\text{d}u\). If so, we would come to believe that \(\displaystyle\int_0^4 e^{\sin(x)}\text{d}x\) was equal to \(\displaystyle\int_0^2 e^{\sin(u^2)}\text{d}u\).
         </div>
         <div class="text-block">
-            If someone asked us to confirm it by drawing a bunch of rectangles and doing approximation, we might even say,
+            Then, we would find ourselves embarrassed by how wrong we are. The two integrals are NOT of the same value. Why, though, are they not the same? Let me propose a reason.
         </div>
         <div class="text-block">
-            "Aha! We have a shortcut. Do you remember earlier, when we calculated all those heights of the rectangles \(e^{\sin(x_i)}\), where \(x_i\) were points of division for \([0,4]\)? We don't need to do all those calculations again. Why? Because \(\sqrt{x_i}\) become points of division for \([0,2]\)! Just let \(u_i=\sqrt{x_i}\). The heights of our rectangles \(e^{\sin(u_i^2)}\) are exactly \(e^{\sin(x_i)}\). Same heights!
+            Our original integral was over \( [0,4] \). Let's call the points in that interval, marking the ends of our little sub-intervals, \( x_i \). 
         </div>
         <div class="text-block">
-            Also, as the widths of the sub-intervals \([x_i,x_{i+1}]\) get thinner and thinner tending to \(0\), the widths of the sub-intervals \([u_i,u_{i+1}]\) will also get thinner tending to \(0\). This we can prove. Therefore, this choice of \(u_i\) is OK for us to estimate \(\displaystyle\int_0^2 e^{\sin(u^2)}\text{d}u\)."
+            If we want the same kinds of points to divide the new interval we're using for \( u\), which is \( [0,2] \)... just use \( u_i=\sqrt{x_i} \). 
         </div>
         <div class="text-block">
-            Surely, we will find that the two integrals match, won't we? Well, you can interact with the graphs below, and find out if the two integrals are the same. You can also click on the thin rectangles on the left, which will bring out information on itself and its counterpart of equal height on the right.
+            Now do pay attention. On the one side we're integrating \(f(x)\), on the other \(f(u^2)\). On the one side, an interval is \(x\in[x_i,x_{i+1}]\), on the other \(u\in[\sqrt{x_i},\sqrt{x_{i+1}}]\). These intervals are paired with one another, across the two graphs.
+        </div>
+       <div class="text-block">
+            But as \(u\) ranges in that second interval, \(u^2\) ranges in \([x_i,x_{i+1}]\) which is the same as what \(x\) ranges in. So the values of \(f(u^2)\) and \(f(x)\) on both intervals are the <strong>same</strong>.
+       </div>
+       <div class="text-block">
+            Remember, the value of a function on an interval is the height of that specific rectangle for the rectangular method. So, using the intervals we're using, the heights of the rectangles for \(f(x)\) and \(f(u^2)\) are the <strong>same</strong>.
+       </div>
+        <div class="text-block">
+            But are the widths of these rectangles the same? Can't have two rectangles of the same height having the same area, if the widths aren't the same.
         </div>
         <div class="text-block">
-            <strong>🔗 Hover or click</strong> on any rectangle on <strong>either</strong> graph: the matching rectangle on the opposite side highlights, and detailed info appears below. Click again anywhere (outside rectangles) to dismiss the lock.
+            <strong> Move the slider to the value you want, click on any rectangle, and compare</strong> the widths \(\Delta x\) and \(\Delta u\) using the numbers that will appear below the graphs.
         </div>
 
         <!-- global slider & n -->

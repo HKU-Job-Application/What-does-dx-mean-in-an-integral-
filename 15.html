@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Double integrals · Riemann squares & cuboids · Disc region</title>
+    <title>Double integrals · Polar grid · Riemann sums on a disc</title>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-    <!-- Three.js core + add-ons -->
     <script type="importmap">
         {
             "imports": {
@@ -39,18 +38,16 @@
             justify-content: center;
         }
         .content-card {
-            background: rgba(255, 255, 255, 0.88);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(2px);
             border-radius: 2rem;
             padding: 2rem 2rem;
             box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255,255,255,0.6);
         }
-        .text-block, .info-text, .fig-caption, .func-heading {
-            font-size: 1.25rem;
-            line-height: 1.5;
-        }
         .text-block {
+            font-size: 1.2rem;
+            line-height: 1.5;
             font-weight: 500;
             color: #1a2c3e;
             margin-bottom: 1.5rem;
@@ -67,7 +64,7 @@
             min-width: 380px;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 1rem;
         }
         .right-stack {
             flex: 0.9;
@@ -93,29 +90,8 @@
             letter-spacing: 0.2px;
             color: #1e4660;
         }
-        .canvas-wrapper {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            background: #ffffff;
-            border-radius: 24px;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 8px;
-        }
-        canvas {
-            display: block;
-            width: 100%;
-            height: auto;
-            background: white;
-        }
-        #static2dCanvas {
-            cursor: default;
-            width: 100%;
-            height: auto;
-            aspect-ratio: 360 / 228;
-        }
         .three-container {
+            position: relative;
             width: 100%;
             height: auto;
             aspect-ratio: 600 / 420;
@@ -123,23 +99,37 @@
             border-radius: 20px;
             overflow: hidden;
             border: 1px solid #e2e8f0;
-            position: relative;
         }
-        .fig-caption {
-            font-size: 0.85rem;
-            color: #4a627a;
-            margin-top: 0.6rem;
-            text-align: center;
-            font-style: italic;
+        .info-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(20, 25, 35, 0.88);
+            backdrop-filter: blur(8px);
+            padding: 12px 18px;
+            border-radius: 20px;
+            color: #f8fafc;
+            font-family: 'Menlo', 'Consolas', monospace;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-left: 4px solid #3b82f6;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+            pointer-events: none;
+            z-index: 20;
+            white-space: nowrap;
+        }
+        .info-overlay p {
+            margin: 2px 0;
+            line-height: 1.4;
         }
         .grid-canvas-container {
             background: #ffffff;
             border-radius: 24px;
             overflow: hidden;
             border: 1px solid #e2e8f0;
-            margin-top: 8px;
+            margin-top: 12px;
         }
-        #gridCanvas {
+        #polarCanvas {
             width: 100%;
             height: auto;
             aspect-ratio: 1 / 1;
@@ -147,21 +137,64 @@
             cursor: pointer;
             display: block;
         }
-        .info-note {
+        .slider-area {
             background: #f1f5f9;
-            border-radius: 20px;
-            padding: 0.7rem 1rem;
-            margin-top: 1rem;
-            font-size: 0.85rem;
+            border-radius: 48px;
+            padding: 0.6rem 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .slider-label {
+            font-weight: 600;
+            color: #1e4660;
+            font-size: 1rem;
+        }
+        input[type="range"] {
+            flex: 2;
+            min-width: 160px;
+            height: 6px;
+            border-radius: 10px;
+            background: #cbd5e1;
+        }
+        .n-value {
+            background: #2c3e66;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 32px;
+            font-size: 0.9rem;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        .explanation {
+            margin-top: 2rem;
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 1.5rem;
+            border-left: 5px solid #3b82f6;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #1e293b;
+        }
+        .explanation p {
+            margin-bottom: 1rem;
+        }
+        .fig-caption {
+            font-size: 0.8rem;
+            color: #4a627a;
+            margin-top: 0.6rem;
             text-align: center;
-            color: #2c3e66;
+            font-style: italic;
         }
         @media (max-width: 800px) {
             .presentation-content { padding: 1rem 1rem 80px 1rem; }
             .content-card { padding: 1.2rem; }
-            .text-block { font-size: 1.1rem; }
+            .text-block { font-size: 1rem; }
+            .info-overlay { font-size: 0.75rem; padding: 8px 12px; white-space: normal; }
         }
-        /* navigation buttons fixed (exclusion zone) */
         .nav-controls {
             position: fixed;
             bottom: 20px;
@@ -199,65 +232,50 @@
         @media (max-width: 600px) {
             .nav-btn { width: 120px; height: 48px; font-size: 1rem; }
         }
-        hr {
-            margin: 0.5rem 0;
-        }
     </style>
 </head>
 <body>
 <div class="presentation-content">
     <div class="content-card">
-        <!-- Top row: first paragraph left, 2D graph right (unchanged) -->
-        <div style="display: flex; flex-wrap: wrap; gap: 2rem; margin-bottom: 1.5rem; align-items: flex-start;">
-            <div style="flex: 1; min-width: 250px;">
-                <div class="text-block" style="margin-bottom: 0;">
-                    Just as \(\displaystyle\int_{[a,b]}f(x)\,\text{d}x\) divides the interval into little sub‑intervals, multiplies the normal length of the sub‑interval by some value of the function on that sub‑interval, and then adds up the rectangular areas,
-                </div>
-            </div>
-            <div style="flex: 0.4; min-width: 240px; max-width: 300px;">
-                <div class="graph-panel">
-                    <div class="func-heading">\( f(x) = e^{-x^{2}} \)</div>
-                    <div class="canvas-wrapper">
-                        <canvas id="static2dCanvas" width="360" height="228" style="width:100%; height:auto; aspect-ratio:360/228"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Second paragraph -->
         <div class="text-block">
-            so \(\displaystyle\int_C f(x,y)\,\text{d}x\,\text{d}y\) divides \(C\) into little squares, multiplies the normal area of the sub‑square by some value of the function on that sub‑square, and then adds up the volumes of the cuboids.
+            In fact, the small shapes concerned don't have to be squares. They could be some other 2D shape, perhaps not identical one to the other.
         </div>
-
-        <!-- Third paragraph: adapted to disc region -->
         <div class="text-block">
-            See below a graph of the surface \(\displaystyle f(x,y)=\exp (-x^2-y^2) \) over the disc \(C = \{x^2+y^2\le 2\}\). You can also see a division of \(C\) into tiny squares of side \(\Delta = 0.2\). If you hover over or click any of these sub‑squares, you can see the volume of the thin cuboid highlighted on the 3‑D graph.
+            Again, as long as the division is arranged so that all the shapes have area less than \(\epsilon\) (where \(\epsilon\) goes to \(0\) as the divisions get finer) and all the shapes have diameter less than \(\delta\) (where \(\delta\) goes to \(0\) as the divisions get finer – by diameter of a shape we mean the distance of the furthest two points of the shape), the sums will tend to the same unique value.
+        </div>
+        <div class="text-block">
+            Here's a different way to divide the shape of the disc. Do you recognise it? (You can still hover or click on the small shapes, and the corresponding volume on the left will show.)
         </div>
 
-        <!-- Two‑column layout: left = 3D disc surface, right = grid canvas with disc -->
         <div class="graphs-row">
-            <!-- LEFT COLUMN: 3D graph (surface clipped to disc) -->
+            <!-- LEFT COLUMN: 3D surface over disc -->
             <div class="left-stack">
                 <div class="graph-panel">
-                    <div class="func-heading">\( f(x,y) = \exp(-x^{2}-y^{2}) \) on \(x^2+y^2\le 2\)</div>
-                    <div class="three-container" id="threeContainer"></div>
+                    <div class="func-heading">\( f(x,y) = e^{-x^{2}-y^{2}} \) on \(x^2+y^2\le 2\)</div>
+                    <div class="three-container" id="threeContainer">
+                        <div id="integralInfoBox" class="info-overlay">
+                            <p>📐 <strong>Riemann estimate</strong>: <span id="estimateValue">2.4102</span></p>
+                            <p>🎯 <strong>Exact integral</strong> : \(2.7164\)</p>
+                        </div>
+                    </div>
                     <div class="fig-caption">
-                        🖱️ Drag to rotate · Right‑click to pan · Scroll to zoom · Translucent surface over the disc<br>
-                        🔴 Red cuboid appears when hovering/clicking a square (right panel)
+                        🖱️ Drag to rotate · Right‑click to pan · Scroll to zoom · Translucent surface over disc<br>
+                        🔴 Red = volume element (height = \(e^{-m^2}\) where \(m\) = max radius in shape)
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: grid canvas for disc C, fixed Δ = 0.2 (no slider, no estimate) -->
+            <!-- RIGHT COLUMN: Polar grid (annular sectors) -->
             <div class="right-stack">
                 <div class="graph-panel" style="padding-bottom: 0.8rem;">
-                    <div class="func-heading">\( C = \{(x,y): x^{2}+y^{2} \le 2\} \) &nbsp; • &nbsp; Grid \(\Delta = 0.2\)</div>
-                    <div class="grid-canvas-container">
-                        <canvas id="gridCanvas" width="600" height="600" style="width:100%; height:auto; aspect-ratio:1/1"></canvas>
+                    <div class="func-heading">\( C = \{(x,y): x^{2}+y^{2} \le 2\} \)</div>
+                    <div class="slider-area">
+                        <span class="slider-label">🌀 n = </span>
+                        <input type="range" id="nSlider" min="5" max="25" step="5" value="5">
+                        <span id="nValueLabel" class="n-value">5</span>
                     </div>
-                    <div class="info-note">
-                        ✨ <strong>Hover</strong> over any square that intersects the disc → red cuboid appears in 3D view.<br>
-                        🖱️ <strong>Click</strong> a square to lock the cuboid; click elsewhere (empty area, 2D graph, or 3D view) to unlock.
+                    <div class="grid-canvas-container">
+                        <canvas id="polarCanvas" width="600" height="600" style="width:100%; height:auto; aspect-ratio:1/1"></canvas>
                     </div>
                 </div>
             </div>
@@ -275,123 +293,15 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     // --------------------------------------------------------------
-    // 1. STATIC 2D GRAPH: f(x)=e^{-x^2}, left Riemann rectangles on [-√2, √2]
-    //    (unchanged from original)
+    // 1. CONSTANTS & SHARED SETUP
     // --------------------------------------------------------------
-    const canvas2D = document.getElementById('static2dCanvas');
-    const ctx2D = canvas2D.getContext('2d');
-    const w2D = canvas2D.width, h2D = canvas2D.height;
-    const xMin2D = -2, xMax2D = 2, yMin2D = -0.2, yMax2D = 1.2;
-    
-    function mapX2D(x) { return ((x - xMin2D) / (xMax2D - xMin2D)) * w2D; }
-    function mapY2D(y) { return h2D - ((y - yMin2D) / (yMax2D - yMin2D)) * h2D; }
-    
-    const f2D = (x) => Math.exp(-x * x);
-    const sqrt2 = Math.sqrt(2);
-    const leftBound = -sqrt2, rightBound = sqrt2;
-    const nRect = 10;
-    const rectWidth = (rightBound - leftBound) / nRect;
-    
-    function drawStaticGraph() {
-        ctx2D.clearRect(0, 0, w2D, h2D);
-        ctx2D.save();
-        ctx2D.strokeStyle = "#cbd5e6";
-        ctx2D.lineWidth = 0.6;
-        ctx2D.fillStyle = "#2c3e66";
-        ctx2D.font = "11px 'Arial'";
-        for (let x = -2; x <= 2.01; x += 0.5) {
-            const sx = mapX2D(x);
-            ctx2D.beginPath(); ctx2D.moveTo(sx, 0); ctx2D.lineTo(sx, h2D);
-            ctx2D.stroke();
-            if (Math.abs(x) > 0.01) ctx2D.fillText(x.toFixed(1), sx+3, mapY2D(-0.05));
-        }
-        for (let y = 0; y <= 1.01; y += 0.25) {
-            const sy = mapY2D(y);
-            ctx2D.beginPath(); ctx2D.moveTo(0, sy); ctx2D.lineTo(w2D, sy);
-            ctx2D.stroke();
-            ctx2D.fillText(y.toFixed(2), 6, sy-3);
-        }
-        ctx2D.beginPath(); ctx2D.lineWidth = 2; ctx2D.strokeStyle = "#1e2a3a";
-        const axisYzero = mapY2D(0);
-        const axisXzero = mapX2D(0);
-        ctx2D.moveTo(0, axisYzero); ctx2D.lineTo(w2D, axisYzero); ctx2D.stroke();
-        ctx2D.moveTo(axisXzero, 0); ctx2D.lineTo(axisXzero, h2D); ctx2D.stroke();
-        
-        // Shaded area under e^{-x^2} from -√2 to √2
-        ctx2D.beginPath();
-        let first = true;
-        const stepsShade = 150;
-        for (let i = 0; i <= stepsShade; i++) {
-            const x = leftBound + (i / stepsShade) * (rightBound - leftBound);
-            const y = f2D(x);
-            const sx = mapX2D(x), sy = mapY2D(y);
-            if (first) { ctx2D.moveTo(sx, sy); first = false; }
-            else ctx2D.lineTo(sx, sy);
-        }
-        const endX = mapX2D(rightBound), startX = mapX2D(leftBound);
-        const baseY = mapY2D(0);
-        ctx2D.lineTo(endX, baseY);
-        ctx2D.lineTo(startX, baseY);
-        ctx2D.closePath();
-        ctx2D.fillStyle = "rgba(46, 125, 50, 0.28)";
-        ctx2D.fill();
-        ctx2D.strokeStyle = "#2e7d32";
-        ctx2D.lineWidth = 1.2;
-        ctx2D.stroke();
-        
-        // curve
-        ctx2D.beginPath();
-        ctx2D.lineWidth = 2.8;
-        ctx2D.strokeStyle = "#c0392b";
-        first = true;
-        for (let i = 0; i <= 300; i++) {
-            const x = xMin2D + (i / 300) * (xMax2D - xMin2D);
-            const y = f2D(x);
-            const sx = mapX2D(x), sy = mapY2D(y);
-            if (first) { ctx2D.moveTo(sx, sy); first = false; }
-            else ctx2D.lineTo(sx, sy);
-        }
-        ctx2D.stroke();
-        
-        // Red left Riemann rectangles
-        for (let k = 0; k < nRect; k++) {
-            const xL = leftBound + k * rectWidth;
-            const xR = xL + rectWidth;
-            const height = f2D(xL);
-            const sxL = mapX2D(xL);
-            const sxR = mapX2D(xR);
-            const syTop = mapY2D(height);
-            const syBottom = mapY2D(0);
-            const rectX = sxL;
-            const rectY = Math.min(syTop, syBottom);
-            const rectH = Math.abs(syBottom - syTop);
-            const rectW = sxR - sxL;
-            if (rectW > 0 && rectH > 0) {
-                ctx2D.fillStyle = "rgba(220, 53, 69, 0.55)";
-                ctx2D.fillRect(rectX, rectY, rectW, rectH);
-                ctx2D.strokeStyle = "#b91c2c";
-                ctx2D.lineWidth = 1.2;
-                ctx2D.strokeRect(rectX, rectY, rectW, rectH);
-            }
-        }
-        ctx2D.setLineDash([5, 5]);
-        ctx2D.beginPath();
-        const xLdash = mapX2D(leftBound);
-        ctx2D.moveTo(xLdash, 0); ctx2D.lineTo(xLdash, h2D);
-        ctx2D.strokeStyle = "#1e5f6b";
-        ctx2D.stroke();
-        const xRdash = mapX2D(rightBound);
-        ctx2D.beginPath();
-        ctx2D.moveTo(xRdash, 0); ctx2D.lineTo(xRdash, h2D);
-        ctx2D.stroke();
-        ctx2D.setLineDash([]);
-        ctx2D.restore();
-    }
-    drawStaticGraph();
-    
-    // --------------------------------------------------------------
-    // 2. THREE.JS SCENE: surface restricted to disc x²+z² ≤ 2
-    // --------------------------------------------------------------
+    const DISC_RADIUS = Math.sqrt(2);
+    let currentN = 5;
+    let polarCells = [];
+    let hoverCellIdx = null;
+    let lockedCellIdx = null;
+
+    // Three.js globals
     const container = document.getElementById('threeContainer');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xfefef7);
@@ -402,15 +312,15 @@
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
-    
+
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.rotateSpeed = 1.2;
     controls.zoomSpeed = 1.2;
     controls.panSpeed = 0.8;
-    
-    // Lighting
+
+    // lighting
     const ambientLight = new THREE.AmbientLight(0x404060);
     scene.add(ambientLight);
     const dirLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -422,34 +332,30 @@
     const fillLight = new THREE.PointLight(0xaaccff, 0.3);
     fillLight.position.set(1, 2, 2);
     scene.add(fillLight);
-    
-    // Helper ground grid
+
     const gridHelper = new THREE.GridHelper(5, 20, 0x888888, 0xbbbbbb);
     gridHelper.position.y = -0.05;
     scene.add(gridHelper);
-    
-    // Build disc surface geometry (clipped to radius = sqrt(2))
-    const DISC_RADIUS = Math.sqrt(2);
-    const segments = 90;          // smooth disc surface
-    const stepDisc = (2 * DISC_RADIUS) / segments;
-    const startCoord = -DISC_RADIUS;
-    
+
+    // Surface geometry (disc-only with f=exp(-x²-y²))
+    const R = DISC_RADIUS;
+    const segments = 90;
+    const stepDisc = (2 * R) / segments;
+    const startCoord = -R;
+
     function insideDisc(x, z) {
-        return (x*x + z*z) <= DISC_RADIUS * DISC_RADIUS + 1e-9;
+        return (x*x + z*z) <= R*R + 1e-9;
     }
-    
+
     const vertices = [];
     const indexMap = [];
-    const rows = segments + 1;
-    const cols = segments + 1;
     for (let i = 0; i <= segments; i++) {
         indexMap[i] = [];
         for (let j = 0; j <= segments; j++) {
             indexMap[i][j] = -1;
         }
     }
-    
-    // Vertex pass
+
     for (let i = 0; i <= segments; i++) {
         const x = startCoord + i * stepDisc;
         for (let j = 0; j <= segments; j++) {
@@ -461,8 +367,7 @@
             }
         }
     }
-    
-    // Index pass (triangles)
+
     const indices = [];
     for (let i = 0; i < segments; i++) {
         for (let j = 0; j < segments; j++) {
@@ -476,238 +381,348 @@
             }
         }
     }
-    
-    const discGeometry = new THREE.BufferGeometry();
-    discGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
-    discGeometry.setIndex(indices);
-    discGeometry.computeVertexNormals();
-    
-    const surfaceMaterial = new THREE.MeshPhongMaterial({
-        color: 0x3a86ff,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.7,
-        emissive: 0x001133,
-        shininess: 65
-    });
-    const surfaceMesh = new THREE.Mesh(discGeometry, surfaceMaterial);
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+
+const material = new THREE.MeshPhongMaterial({
+    color: 0x3a86ff,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.4,
+    emissive: 0x001133,
+    shininess: 65
+});
+    const surfaceMesh = new THREE.Mesh(geometry, material);
     scene.add(surfaceMesh);
-    
-    // Wireframe overlay (only on disc)
+
     const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x2266aa, wireframe: true, transparent: true, opacity: 0.2 });
-    const wireframeMesh = new THREE.Mesh(discGeometry, wireframeMat);
+    const wireframeMesh = new THREE.Mesh(geometry, wireframeMat);
     scene.add(wireframeMesh);
-    
-    // Circle outline on ground to emphasize disc boundary
+
+    // Circle outline on ground
     const circlePoints = [];
     const circleSegments = 80;
     for (let i = 0; i <= circleSegments; i++) {
         const angle = (i / circleSegments) * Math.PI * 2;
-        const x = DISC_RADIUS * Math.cos(angle);
-        const z = DISC_RADIUS * Math.sin(angle);
+        const x = R * Math.cos(angle);
+        const z = R * Math.sin(angle);
         circlePoints.push(new THREE.Vector3(x, -0.045, z));
     }
     const circleGeo = new THREE.BufferGeometry().setFromPoints(circlePoints);
     const circleMat = new THREE.LineBasicMaterial({ color: 0x2c5282 });
     const circleOutline = new THREE.LineLoop(circleGeo, circleMat);
     scene.add(circleOutline);
-    
-    // --------------------------------------------------------------
-    // 3. RED CUBOID LOGIC (height based on max x²+y² on square, same as 16.html)
-    // --------------------------------------------------------------
-    let currentCuboid = null;
-    function removeCuboid() {
-        if (currentCuboid) { scene.remove(currentCuboid); currentCuboid = null; }
+
+    let currentVolumeMesh = null;
+
+    function removeVolume() {
+        if (currentVolumeMesh) {
+            scene.remove(currentVolumeMesh);
+            currentVolumeMesh = null;
+        }
     }
-    
-    function computeCuboidHeight(sq) {
-        const maxX2 = Math.max(sq.x0 * sq.x0, sq.x1 * sq.x1);
-        const maxY2 = Math.max(sq.y0 * sq.y0, sq.y1 * sq.y1);
-        let maxSq = maxX2 + maxY2;
-        let m = Math.min(2.0, maxSq);
-        return Math.exp(-m);
-    }
-    
-    function updateCuboidFromSquare(sq) {
-        if (!sq) return false;
-        const height = computeCuboidHeight(sq);
-        if (height <= 0.001) return false;
-        const width = sq.x1 - sq.x0;
-        const depth = sq.y1 - sq.y0;
-        const centerX = (sq.x0 + sq.x1) / 2;
-        const centerZ = (sq.y0 + sq.y1) / 2;
-        const geometryBox = new THREE.BoxGeometry(width, height, depth);
-        const materialBox = new THREE.MeshStandardMaterial({ color: 0xdc2626, emissive: 0x440000, roughness: 0.3, metalness: 0.1 });
-        const box = new THREE.Mesh(geometryBox, materialBox);
-        box.position.set(centerX, height / 2, centerZ);
-        if (currentCuboid) scene.remove(currentCuboid);
-        scene.add(box);
-        currentCuboid = box;
-        return true;
-    }
-    
-    // --------------------------------------------------------------
-    // 4. RIGHT GRID: squares intersecting disc, fixed Δ = 0.2
-    // --------------------------------------------------------------
-    const WORLD_MIN = -2.2;
-    const WORLD_MAX = 2.2;
-    const DELTA_FIXED = 0.2;
-    
-    let interactiveSquares = [];
-    let hoverSquareIdx = null;
-    let lockedSquareIdx = null;
-    
-    const gridCanvas = document.getElementById('gridCanvas');
-    const ctxGrid = gridCanvas.getContext('2d');
-    const sizeGrid = gridCanvas.width;
-    
-    function pointInDisc(x, y) {
-        return (x*x + y*y) <= DISC_RADIUS * DISC_RADIUS + 1e-9;
-    }
-    
-    function squareIntersectsDisc(x0, x1, y0, y1, radius) {
-        // closest point to origin within square
-        let closestX = Math.max(x0, Math.min(0, x1));
-        let closestY = Math.max(y0, Math.min(0, y1));
-        let dist2 = closestX*closestX + closestY*closestY;
-        if (dist2 <= radius*radius + 1e-8) return true;
-        if (pointInDisc(x0, y0) || pointInDisc(x0, y1) || pointInDisc(x1, y0) || pointInDisc(x1, y1)) return true;
-        return false;
-    }
-    
-    function buildSquaresForDelta(delta) {
-        const squares = [];
-        const nSteps = Math.ceil((WORLD_MAX - WORLD_MIN) / delta);
-        for (let i = 0; i < nSteps; i++) {
-            const x0 = WORLD_MIN + i * delta;
-            const x1 = x0 + delta;
-            if (x0 > WORLD_MAX + 1e-6) continue;
-            for (let j = 0; j < nSteps; j++) {
-                const y0 = WORLD_MIN + j * delta;
-                const y1 = y0 + delta;
-                if (y0 > WORLD_MAX + 1e-6) continue;
-                if (!squareIntersectsDisc(x0, x1, y0, y1, DISC_RADIUS)) continue;
-                const cx = (x0 + x1) / 2;
-                const cy = (y0 + y1) / 2;
-                squares.push({ x0, x1, y0, y1, cx, cy });
+
+    // Build a smooth extruded prism for a polar cell (annular sector) with high angular resolution
+    function createVolumeMeshForCell(cell) {
+        const h = cell.heightVal;
+        if (h <= 1e-6) return null;
+        const r0 = cell.r0, r1 = cell.r1;
+        const theta0 = cell.theta0, theta1 = cell.theta1;
+        const radialSteps = 24;
+        const angularSteps = 24;   // high resolution for curved shape
+        const vertices = [];
+        const indices = [];
+
+        // precompute all bottom and top points
+        const nRad = radialSteps + 1;
+        const nAng = angularSteps + 1;
+        const bottomPos = [];
+        const topPos = [];
+
+        for (let i = 0; i <= radialSteps; i++) {
+            const r = r0 + (r1 - r0) * i / radialSteps;
+            for (let j = 0; j <= angularSteps; j++) {
+                const theta = theta0 + (theta1 - theta0) * j / angularSteps;
+                const x = r * Math.cos(theta);
+                const z = r * Math.sin(theta);
+                bottomPos.push({x, z});
+                topPos.push({x, z});
             }
         }
-        return squares;
+
+        const bottomStart = 0;
+        const topStart = bottomPos.length;
+        for (let p of bottomPos) {
+            vertices.push(p.x, 0, p.z);
+        }
+        for (let p of topPos) {
+            vertices.push(p.x, h, p.z);
+        }
+
+        // build triangles for bottom, top, and sides
+        for (let i = 0; i < radialSteps; i++) {
+            for (let j = 0; j < angularSteps; j++) {
+                const idx = i * nAng + j;
+                const i1 = idx;
+                const i2 = idx + 1;
+                const i3 = idx + nAng;
+                const i4 = idx + nAng + 1;
+                // bottom quad -> two triangles (face down)
+                indices.push(i1, i3, i2);
+                indices.push(i2, i3, i4);
+// top quad (with top vertices) – corrected winding for upward normals
+const t1 = topStart + i1;
+const t2 = topStart + i2;
+const t3 = topStart + i3;
+const t4 = topStart + i4;
+indices.push(t1, t3, t2);
+indices.push(t2, t3, t4);
+                // side faces (vertical)
+                indices.push(i1, i2, t1);
+                indices.push(i2, t2, t1);
+                indices.push(i2, i4, t2);
+                indices.push(i4, t4, t2);
+                indices.push(i4, i3, t4);
+                indices.push(i3, t3, t4);
+                indices.push(i3, i1, t3);
+                indices.push(i1, t1, t3);
+            }
+        }
+
+        const geom = new THREE.BufferGeometry();
+        geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+        geom.setIndex(indices);
+        geom.computeVertexNormals();
+
+const materialVol = new THREE.MeshStandardMaterial({
+    color: 0xdc2626,
+    emissive: 0x441111,
+    roughness: 0.4,
+    metalness: 0.1
+});
+        const mesh = new THREE.Mesh(geom, materialVol);
+        return mesh;
     }
-    
+
+    function updateVolumeFromSelection() {
+        let activeIdx = null;
+        if (lockedCellIdx !== null) activeIdx = lockedCellIdx;
+        else if (hoverCellIdx !== null) activeIdx = hoverCellIdx;
+
+        removeVolume();
+        if (activeIdx !== null && polarCells[activeIdx]) {
+            const mesh = createVolumeMeshForCell(polarCells[activeIdx]);
+            if (mesh) {
+                scene.add(mesh);
+                currentVolumeMesh = mesh;
+            }
+        }
+    }
+
+    // --------------------------------------------------------------
+    // 2. POLAR CELLS: build from n
+    // --------------------------------------------------------------
+    function buildPolarCells(n) {
+        const cells = [];
+        const dr = DISC_RADIUS / n;
+        const dtheta = 2 * Math.PI / n;
+        for (let i = 0; i < n; i++) {
+            const r0 = i * dr;
+            const r1 = (i + 1) * dr;
+            const maxRadius = r1;
+            const heightVal = Math.exp(-(maxRadius * maxRadius));
+            const area = 0.5 * (r1 * r1 - r0 * r0) * dtheta;
+            for (let j = 0; j < n; j++) {
+                const theta0 = j * dtheta;
+                const theta1 = (j + 1) * dtheta;
+                cells.push({
+                    idx: cells.length,
+                    i, j,
+                    r0, r1,
+                    theta0, theta1,
+                    maxRadius,
+                    heightVal,
+                    area
+                });
+            }
+        }
+        return cells;
+    }
+
+    function computeRiemannEstimate(cells) {
+        let sum = 0;
+        for (const cell of cells) sum += cell.heightVal * cell.area;
+        return sum;
+    }
+
+    function updateLeftPanel() {
+        const estimate = computeRiemannEstimate(polarCells);
+        document.getElementById('estimateValue').innerText = estimate.toFixed(4);
+        document.getElementById('nValueLabel').innerText = currentN;
+    }
+
+    // --------------------------------------------------------------
+    // 3. CANVAS drawing (polar grid) with wider XY plane
+    // --------------------------------------------------------------
+    const polarCanvas = document.getElementById('polarCanvas');
+    const ctx = polarCanvas.getContext('2d');
+    const size = polarCanvas.width;
+    const centerCanvas = { x: size/2, y: size/2 };
+    const radiusPixels = 260;            // visual disc radius in pixels
+    const worldExtent = DISC_RADIUS * 1.4;  // show area from -1.4R to +1.4R
+    const scaleFactor = radiusPixels / worldExtent;
+
     function worldToCanvas(xw, yw) {
-        const px = ((xw - WORLD_MIN) / (WORLD_MAX - WORLD_MIN)) * sizeGrid;
-        const py = sizeGrid - ((yw - WORLD_MIN) / (WORLD_MAX - WORLD_MIN)) * sizeGrid;
-        return { x: px, y: py };
+        const sx = centerCanvas.x + xw * scaleFactor;
+        const sy = centerCanvas.y - yw * scaleFactor;
+        return { x: sx, y: sy };
     }
-    
-    function getSquareFromPixel(px, py) {
-        const worldX = WORLD_MIN + (px / sizeGrid) * (WORLD_MAX - WORLD_MIN);
-        const worldY = WORLD_MAX - (py / sizeGrid) * (WORLD_MAX - WORLD_MIN);
-        for (let idx = 0; idx < interactiveSquares.length; idx++) {
-            const sq = interactiveSquares[idx];
-            if (worldX >= sq.x0 && worldX <= sq.x1 && worldY >= sq.y0 && worldY <= sq.y1) {
-                return idx;
-            }
-        }
-        return null;
+
+    function canvasToWorld(cx, cy) {
+        const dx = (cx - centerCanvas.x) / scaleFactor;
+        const dy = (centerCanvas.y - cy) / scaleFactor;
+        return { x: dx, y: dy };
     }
-    
-    function drawGrid() {
-        ctxGrid.clearRect(0, 0, sizeGrid, sizeGrid);
-        ctxGrid.fillStyle = "#fefaf0";
-        ctxGrid.fillRect(0, 0, sizeGrid, sizeGrid);
-        
-        const centerCanvas = worldToCanvas(0, 0);
-        const radiusCanvas = worldToCanvas(DISC_RADIUS, 0).x - worldToCanvas(0, 0).x;
-        ctxGrid.beginPath();
-        ctxGrid.arc(centerCanvas.x, centerCanvas.y, radiusCanvas, 0, 2 * Math.PI);
-        ctxGrid.fillStyle = "rgba(100, 149, 237, 0.18)";
-        ctxGrid.fill();
-        ctxGrid.strokeStyle = "#2c5282";
-        ctxGrid.lineWidth = 2.2;
-        ctxGrid.stroke();
-        
-        // draw grid lines (fixed step)
-        ctxGrid.beginPath();
-        ctxGrid.strokeStyle = "#9aaec0";
-        ctxGrid.lineWidth = 0.9;
-        for (let x = WORLD_MIN; x <= WORLD_MAX + 1e-6; x += DELTA_FIXED) {
-            const p1 = worldToCanvas(x, WORLD_MIN);
-            const p2 = worldToCanvas(x, WORLD_MAX);
-            ctxGrid.moveTo(p1.x, p1.y);
-            ctxGrid.lineTo(p2.x, p2.y);
-            ctxGrid.stroke();
+
+    function findCellIndex(xw, yw) {
+        const r = Math.hypot(xw, yw);
+        if (r > DISC_RADIUS + 1e-6) return null;
+        let theta = Math.atan2(yw, xw);
+        if (theta < 0) theta += 2 * Math.PI;
+        const dr = DISC_RADIUS / currentN;
+        const dtheta = 2 * Math.PI / currentN;
+        const i = Math.floor(r / dr);
+        if (i < 0 || i >= currentN) return null;
+        const j = Math.floor(theta / dtheta);
+        if (j < 0 || j >= currentN) return null;
+        return i * currentN + j;
+    }
+
+    function drawPolarGrid() {
+        ctx.clearRect(0, 0, size, size);
+        ctx.fillStyle = "#fefaf0";
+        ctx.fillRect(0, 0, size, size);
+
+        // Draw axes extended to worldExtent
+        const axisLeft = worldToCanvas(-worldExtent, 0);
+        const axisRight = worldToCanvas(worldExtent, 0);
+        const axisBottom = worldToCanvas(0, -worldExtent);
+        const axisTop = worldToCanvas(0, worldExtent);
+        ctx.beginPath();
+        ctx.moveTo(axisLeft.x, axisLeft.y);
+        ctx.lineTo(axisRight.x, axisRight.y);
+        ctx.moveTo(axisBottom.x, axisBottom.y);
+        ctx.lineTo(axisTop.x, axisTop.y);
+        ctx.strokeStyle = "#2d3748";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Disc outline
+        const discCenter = worldToCanvas(0, 0);
+        const discRadiusPx = (DISC_RADIUS / worldExtent) * radiusPixels;
+        ctx.beginPath();
+        ctx.arc(discCenter.x, discCenter.y, discRadiusPx, 0, 2 * Math.PI);
+        ctx.fillStyle = "rgba(100, 149, 237, 0.12)";
+        ctx.fill();
+        ctx.strokeStyle = "#2c5282";
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+
+        // Draw radial lines and circular arcs for polar grid
+        const dtheta = 2 * Math.PI / currentN;
+        const dr = DISC_RADIUS / currentN;
+        for (let j = 0; j <= currentN; j++) {
+            const theta = j * dtheta;
+            const p1 = worldToCanvas(0, 0);
+            const p2 = worldToCanvas(DISC_RADIUS * Math.cos(theta), DISC_RADIUS * Math.sin(theta));
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = "#9aaec0";
+            ctx.lineWidth = 1.0;
+            ctx.stroke();
         }
-        for (let y = WORLD_MIN; y <= WORLD_MAX + 1e-6; y += DELTA_FIXED) {
-            const p1 = worldToCanvas(WORLD_MIN, y);
-            const p2 = worldToCanvas(WORLD_MAX, y);
-            ctxGrid.moveTo(p1.x, p1.y);
-            ctxGrid.lineTo(p2.x, p2.y);
-            ctxGrid.stroke();
+        for (let i = 1; i <= currentN; i++) {
+            const rWorld = i * dr;
+            const radiusPx = (rWorld / worldExtent) * radiusPixels;
+            ctx.beginPath();
+            ctx.arc(discCenter.x, discCenter.y, radiusPx, 0, 2 * Math.PI);
+            ctx.strokeStyle = "#9aaec0";
+            ctx.lineWidth = 1.0;
+            ctx.stroke();
         }
-        
+
+        // Highlight active cell using true arcs
         let activeIdx = null;
-        if (lockedSquareIdx !== null) activeIdx = lockedSquareIdx;
-        else if (hoverSquareIdx !== null) activeIdx = hoverSquareIdx;
-        
-        if (activeIdx !== null && interactiveSquares[activeIdx]) {
-            const sq = interactiveSquares[activeIdx];
-            const tl = worldToCanvas(sq.x0, sq.y1);
-            const br = worldToCanvas(sq.x1, sq.y0);
-            const wRect = br.x - tl.x;
-            const hRect = br.y - tl.y;
-            if (lockedSquareIdx === activeIdx) {
-                ctxGrid.fillStyle = "rgba(220, 38, 38, 0.5)";
-                ctxGrid.fillRect(tl.x, tl.y, wRect, hRect);
-                ctxGrid.strokeStyle = "#b91c1c";
-                ctxGrid.lineWidth = 2.8;
-                ctxGrid.strokeRect(tl.x, tl.y, wRect, hRect);
+        if (lockedCellIdx !== null) activeIdx = lockedCellIdx;
+        else if (hoverCellIdx !== null) activeIdx = hoverCellIdx;
+
+        if (activeIdx !== null && polarCells[activeIdx]) {
+            const cell = polarCells[activeIdx];
+            const r0 = cell.r0, r1 = cell.r1;
+            const theta0 = cell.theta0, theta1 = cell.theta1;
+            const angularSteps = 40; // smooth arcs
+
+            // Build path: outer arc, radial line, inner arc (reversed), radial line
+            ctx.beginPath();
+            // Start at outer arc start (r1, theta0)
+            let p = worldToCanvas(r1 * Math.cos(theta0), r1 * Math.sin(theta0));
+            ctx.moveTo(p.x, p.y);
+            // Outer arc from theta0 to theta1
+            for (let k = 1; k <= angularSteps; k++) {
+                const theta = theta0 + (theta1 - theta0) * k / angularSteps;
+                p = worldToCanvas(r1 * Math.cos(theta), r1 * Math.sin(theta));
+                ctx.lineTo(p.x, p.y);
+            }
+            // Radial line inward to inner arc at theta1
+            p = worldToCanvas(r0 * Math.cos(theta1), r0 * Math.sin(theta1));
+            ctx.lineTo(p.x, p.y);
+            // Inner arc from theta1 back to theta0
+            for (let k = angularSteps-1; k >= 0; k--) {
+                const theta = theta0 + (theta1 - theta0) * k / angularSteps;
+                p = worldToCanvas(r0 * Math.cos(theta), r0 * Math.sin(theta));
+                ctx.lineTo(p.x, p.y);
+            }
+            // Close back to start
+            ctx.closePath();
+            if (lockedCellIdx === activeIdx) {
+                ctx.fillStyle = "rgba(220, 38, 38, 0.55)";
+                ctx.strokeStyle = "#b91c1c";
+                ctx.lineWidth = 2.8;
             } else {
-                ctxGrid.fillStyle = "rgba(245, 158, 11, 0.45)";
-                ctxGrid.fillRect(tl.x, tl.y, wRect, hRect);
-                ctxGrid.strokeStyle = "#e67e22";
-                ctxGrid.lineWidth = 2.2;
-                ctxGrid.strokeRect(tl.x, tl.y, wRect, hRect);
+                ctx.fillStyle = "rgba(245, 158, 11, 0.48)";
+                ctx.strokeStyle = "#e67e22";
+                ctx.lineWidth = 2.4;
             }
+            ctx.fill();
+            ctx.stroke();
         }
-        
-        // redraw disc border on top
-        ctxGrid.beginPath();
-        ctxGrid.arc(centerCanvas.x, centerCanvas.y, radiusCanvas, 0, 2 * Math.PI);
-        ctxGrid.strokeStyle = "#1e4a76";
-        ctxGrid.lineWidth = 2;
-        ctxGrid.stroke();
-        
-        const origin = worldToCanvas(0, 0);
-        ctxGrid.beginPath();
-        ctxGrid.strokeStyle = "#2d3748";
-        ctxGrid.lineWidth = 1.5;
-        ctxGrid.moveTo(worldToCanvas(WORLD_MIN, 0).x, origin.y);
-        ctxGrid.lineTo(worldToCanvas(WORLD_MAX, 0).x, origin.y);
-        ctxGrid.stroke();
-        ctxGrid.moveTo(origin.x, worldToCanvas(0, WORLD_MIN).y);
-        ctxGrid.lineTo(origin.x, worldToCanvas(0, WORLD_MAX).y);
-        ctxGrid.stroke();
+
+        // Draw disc border again on top
+        ctx.beginPath();
+        ctx.arc(discCenter.x, discCenter.y, discRadiusPx, 0, 2 * Math.PI);
+        ctx.strokeStyle = "#1e4a76";
+        ctx.lineWidth = 2.4;
+        ctx.stroke();
     }
-    
-    function update3DfromState() {
-        let activeIdx = null;
-        if (lockedSquareIdx !== null) activeIdx = lockedSquareIdx;
-        else if (hoverSquareIdx !== null) activeIdx = hoverSquareIdx;
-        if (activeIdx !== null && interactiveSquares[activeIdx]) {
-            updateCuboidFromSquare(interactiveSquares[activeIdx]);
-        } else {
-            removeCuboid();
-        }
-        drawGrid();
+
+    function refreshUIAnd3D() {
+        updateLeftPanel();
+        drawPolarGrid();
+        updateVolumeFromSelection();
     }
-    
-    function handleGridMouseMove(e) {
-        if (lockedSquareIdx !== null) return;
-        const rect = gridCanvas.getBoundingClientRect();
-        const scaleX = gridCanvas.width / rect.width;
-        const scaleY = gridCanvas.height / rect.height;
+
+    // --------------------------------------------------------------
+    // 4. Event handlers
+    // --------------------------------------------------------------
+    function handleCanvasMouseMove(e) {
+        if (lockedCellIdx !== null) return;
+        const rect = polarCanvas.getBoundingClientRect();
+        const scaleX = polarCanvas.width / rect.width;
+        const scaleY = polarCanvas.height / rect.height;
         let clientX, clientY;
         if (e.touches) {
             clientX = e.touches[0].clientX;
@@ -718,21 +733,22 @@
         }
         const canvasX = (clientX - rect.left) * scaleX;
         const canvasY = (clientY - rect.top) * scaleY;
-        if (canvasX < 0 || canvasX > gridCanvas.width || canvasY < 0 || canvasY > gridCanvas.height) {
-            if (hoverSquareIdx !== null) { hoverSquareIdx = null; update3DfromState(); }
+        if (canvasX < 0 || canvasX > polarCanvas.width || canvasY < 0 || canvasY > polarCanvas.height) {
+            if (hoverCellIdx !== null) { hoverCellIdx = null; refreshUIAnd3D(); }
             return;
         }
-        const idx = getSquareFromPixel(canvasX, canvasY);
-        if (idx !== hoverSquareIdx) {
-            hoverSquareIdx = idx;
-            update3DfromState();
+        const worldPt = canvasToWorld(canvasX, canvasY);
+        const idx = findCellIndex(worldPt.x, worldPt.y);
+        if (idx !== hoverCellIdx) {
+            hoverCellIdx = idx;
+            refreshUIAnd3D();
         }
     }
-    
-    function handleGridClick(e) {
-        const rect = gridCanvas.getBoundingClientRect();
-        const scaleX = gridCanvas.width / rect.width;
-        const scaleY = gridCanvas.height / rect.height;
+
+    function handleCanvasClick(e) {
+        const rect = polarCanvas.getBoundingClientRect();
+        const scaleX = polarCanvas.width / rect.width;
+        const scaleY = polarCanvas.height / rect.height;
         let clientX, clientY;
         if (e.touches) {
             clientX = e.touches[0].clientX;
@@ -743,55 +759,78 @@
         }
         const canvasX = (clientX - rect.left) * scaleX;
         const canvasY = (clientY - rect.top) * scaleY;
-        const idx = getSquareFromPixel(canvasX, canvasY);
+        const worldPt = canvasToWorld(canvasX, canvasY);
+        const idx = findCellIndex(worldPt.x, worldPt.y);
         if (idx !== null) {
-            if (lockedSquareIdx !== idx) {
-                lockedSquareIdx = idx;
-                hoverSquareIdx = null;
-                update3DfromState();
+            if (lockedCellIdx !== idx) {
+                lockedCellIdx = idx;
+                hoverCellIdx = null;
+                refreshUIAnd3D();
             }
         } else {
-            if (lockedSquareIdx !== null) {
-                lockedSquareIdx = null;
-                hoverSquareIdx = null;
-                update3DfromState();
+            if (lockedCellIdx !== null) {
+                lockedCellIdx = null;
+                hoverCellIdx = null;
+                refreshUIAnd3D();
             }
         }
         e.stopPropagation();
     }
-    
-    gridCanvas.addEventListener('mousemove', handleGridMouseMove);
-    gridCanvas.addEventListener('click', handleGridClick);
-    gridCanvas.addEventListener('mouseleave', () => {
-        if (lockedSquareIdx === null && hoverSquareIdx !== null) {
-            hoverSquareIdx = null;
-            update3DfromState();
-        }
-    });
-    window.addEventListener('click', (event) => {
-        if (!gridCanvas.contains(event.target) && event.target !== gridCanvas) {
-            if (lockedSquareIdx !== null) {
-                lockedSquareIdx = null;
-                hoverSquareIdx = null;
-                update3DfromState();
+
+    function resetSelectionOnOutside(e) {
+        if (!polarCanvas.contains(e.target) && e.target !== polarCanvas) {
+            if (lockedCellIdx !== null) {
+                lockedCellIdx = null;
+                hoverCellIdx = null;
+                refreshUIAnd3D();
             }
         }
+    }
+
+    polarCanvas.addEventListener('mousemove', handleCanvasMouseMove);
+    polarCanvas.addEventListener('click', handleCanvasClick);
+    polarCanvas.addEventListener('mouseleave', () => {
+        if (lockedCellIdx === null && hoverCellIdx !== null) {
+            hoverCellIdx = null;
+            refreshUIAnd3D();
+        }
     });
-    gridCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleGridMouseMove(e); });
-    gridCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleGridClick(e); });
-    
-    // initialize squares and drawing
-    interactiveSquares = buildSquaresForDelta(DELTA_FIXED);
-    drawGrid();
-    
-    // Animation loop
+    window.addEventListener('click', resetSelectionOnOutside);
+    polarCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleCanvasMouseMove(e); });
+    polarCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleCanvasClick(e); });
+
+    // --------------------------------------------------------------
+    // 5. Slider
+    // --------------------------------------------------------------
+    const nSlider = document.getElementById('nSlider');
+    function rebuildPolarGrid() {
+        polarCells = buildPolarCells(currentN);
+        hoverCellIdx = null;
+        lockedCellIdx = null;
+        removeVolume();
+        refreshUIAnd3D();
+    }
+
+    nSlider.addEventListener('input', (e) => {
+        currentN = parseInt(e.target.value, 10);
+        nSlider.value = currentN;
+        rebuildPolarGrid();
+    });
+
+    currentN = 5;
+    nSlider.value = 5;
+    rebuildPolarGrid();
+
+    // --------------------------------------------------------------
+    // 6. Animation & resize
+    // --------------------------------------------------------------
     function animate() {
         controls.update();
         renderer.render(scene, camera);
         requestAnimationFrame(animate);
     }
     animate();
-    
+
     window.addEventListener('resize', () => {
         const w = container.clientWidth;
         const h = container.clientHeight;
@@ -799,7 +838,6 @@
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
     });
-    
     setTimeout(() => {
         const w = container.clientWidth;
         const h = container.clientHeight;
@@ -807,9 +845,9 @@
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
     }, 120);
-    
+
     // --------------------------------------------------------------
-    // Navigation (based on filename)
+    // 7. Navigation
     // --------------------------------------------------------------
     function getCurrentNumber() {
         const path = window.location.pathname;
