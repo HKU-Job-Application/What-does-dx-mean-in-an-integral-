@@ -151,7 +151,7 @@
             of which it's easy to give the exact value, using the substitution $u=r^2$.
         </div>
         <div class="text-block">
-            By the way, this process gave us the answer for the rule of substitution: $\text{d}x\,\text{d}y=r\,\text{d}r\,\{text}d\theta$.
+            By the way, this process gave us the answer for the rule of substitution: $\text{d}x\,\text{d}y=r\,\text{d}r\,\text{d}\theta$.
         </div>        
     </div>
 </div>
@@ -167,32 +167,3 @@
     // Navigation logic: extract numeric base from filename (e.g., 22.html -> 22)
     // and navigate to previous/next arithmetic filename.
     // No existence checks; always performs navigation.
-    // --------------------------------------------------------------
-    function getCurrentNumber() {
-        const path = window.location.pathname;
-        // match numbers before .html at the end of the filename
-        const match = path.match(/(\d+)\.html$/);
-        if (match) {
-            return parseInt(match[1], 10);
-        }
-        // fallback: if for some reason no number found, assume this is slide 22
-        return 22;
-    }
-
-    const prevBtn = document.getElementById('prevButton');
-    const nextBtn = document.getElementById('nextButton');
-
-    prevBtn.addEventListener('click', () => {
-        const cur = getCurrentNumber();
-        const prevNum = cur - 1;
-        window.location.href = prevNum + '.html';
-    });
-
-    nextBtn.addEventListener('click', () => {
-        const cur = getCurrentNumber();
-        const nextNum = cur + 1;
-        window.location.href = nextNum + '.html';
-    });
-</script>
-</body>
-</html>
