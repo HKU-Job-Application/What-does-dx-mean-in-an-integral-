@@ -163,7 +163,22 @@
 </div>
 
 <script>
-    // --------------------------------------------------------------
-    // Navigation logic: extract numeric base from filename (e.g., 22.html -> 22)
-    // and navigate to previous/next arithmetic filename.
-    // No existence checks; always performs navigation.
+function getCurrentPageNumber() {
+    const fileName = window.location.pathname.split('/').pop(); // "19.html"
+    return parseInt(fileName);
+}
+
+document.getElementById('prevButton').addEventListener('click', () => {
+    const current = getCurrentPageNumber();
+    if (!isNaN(current) && current > 1) {
+        window.location.href = (current - 1) + '.html';
+    }
+});
+
+document.getElementById('nextButton').addEventListener('click', () => {
+    const current = getCurrentPageNumber();
+    if (!isNaN(current)) {
+        window.location.href = (current + 1) + '.html';
+    }
+});
+</script>
